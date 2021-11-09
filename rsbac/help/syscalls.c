@@ -3,7 +3,7 @@
 /* Implementation of RSBAC general system calls      */
 /* Author and (C) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 27/Sep/2021                        */
+/* Last modified: 09/Nov/2021                        */
 /*************************************************** */
 
 #include <rsbac/types.h>
@@ -3955,7 +3955,7 @@ int sys_rsbac_acl_n(
 
       /* get values from user space */
 #if defined(CONFIG_IA32_EMULATION) || defined(CONFIG_X86_X32)
-      if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_IA32)) {
+      if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_ADDR32)) {
         struct rsbac_acl_syscall_n_arg_ia32_t k_arg_ia32;
 
         err = rsbac_get_user(&k_arg_ia32, arg, sizeof(k_arg_ia32) );
@@ -5973,7 +5973,7 @@ int sys_rsbac_um_mod_user(
           if(!k_data_p)
             return -RSBAC_ENOMEM;
 #if defined(CONFIG_IA32_EMULATION) || defined(CONFIG_X86_X32)
-          if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_IA32))
+          if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_ADDR32))
               err = rsbac_get_user(k_data_p, data_p, sizeof(union rsbac_um_mod_data_ia32_t));
           else
 #endif
@@ -6164,7 +6164,7 @@ int sys_rsbac_um_mod_group(
           if(!k_data_p)
             return -RSBAC_ENOMEM;
 #if defined(CONFIG_IA32_EMULATION) || defined(CONFIG_X86_X32)
-          if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_IA32))
+          if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_ADDR32))
               err = rsbac_get_user(k_data_p, data_p, sizeof(union rsbac_um_mod_data_ia32_t));
           else
 #endif
@@ -6271,7 +6271,7 @@ int sys_rsbac_um_get_user_item(
       if(!err)
         {
 #if defined(CONFIG_IA32_EMULATION) || defined(CONFIG_X86_X32)
-          if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_IA32))
+          if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_ADDR32))
               err = rsbac_put_user(k_data_p, data_p, sizeof(union rsbac_um_mod_data_ia32_t) );
           else
 #endif
@@ -6361,7 +6361,7 @@ int sys_rsbac_um_get_group_item(
       if(!err)
         {
 #if defined(CONFIG_IA32_EMULATION) || defined(CONFIG_X86_X32)
-          if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_IA32))
+          if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_ADDR32))
             err = rsbac_put_user(k_data_p, data_p, sizeof(union rsbac_um_mod_data_ia32_t) );
           else
 #endif
@@ -8612,7 +8612,7 @@ SYSCALL_DEFINE3(rsbac, rsbac_version_t, version, enum rsbac_syscall_t, call, uni
 #endif
 
 #if defined(CONFIG_IA32_EMULATION) || defined(CONFIG_X86_X32)
-    if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_IA32)) {
+    if((current->thread_info.status & TS_COMPAT) || test_thread_flag(TIF_ADDR32)) {
       union rsbac_syscall_arg_ia32_t k_arg;
 
       /* get values from user space */
