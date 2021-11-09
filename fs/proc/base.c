@@ -521,7 +521,8 @@ static int proc_pid_wchan(struct seq_file *m, struct pid_namespace *ns,
 					A_none,
 					rsbac_attribute_value)) {
 			put_pid(rsbac_target_id.process);
-			goto print0;
+			seq_putc(m, '0');
+			return 0;
 		}
 		put_pid(rsbac_target_id.process);
 	}

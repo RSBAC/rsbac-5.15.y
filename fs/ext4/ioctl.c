@@ -876,6 +876,15 @@ static long __ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		case EXT4_IOC_GETVERSION:
 		case EXT4_IOC_GETVERSION_OLD:
 		case EXT4_IOC_GETRSVSZ:
+		case FS_IOC_GETFSMAP:
+		case FS_IOC_GET_ENCRYPTION_POLICY:
+		case FS_IOC_GET_ENCRYPTION_POLICY_EX:
+		case FS_IOC_GET_ENCRYPTION_KEY_STATUS:
+		case FS_IOC_GET_ENCRYPTION_NONCE:
+		case EXT4_IOC_GETSTATE:
+		case EXT4_IOC_GET_ES_CACHE:
+		case FS_IOC_MEASURE_VERITY:
+		case FS_IOC_READ_VERITY_METADATA:
 			rsbac_request = R_GET_PERMISSIONS_DATA;
 			break;
 		case FS_IOC_SETFLAGS:
@@ -883,8 +892,23 @@ static long __ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		case EXT4_IOC_SETVERSION_OLD:
 		case EXT4_IOC_SETRSVSZ:
 		case EXT4_IOC_GROUP_EXTEND:
+		case EXT4_IOC_MOVE_EXT:
 		case EXT4_IOC_GROUP_ADD:
 		case EXT4_IOC_MIGRATE:
+		case EXT4_IOC_ALLOC_DA_BLKS:
+		case EXT4_IOC_SWAP_BOOT:
+		case EXT4_IOC_RESIZE_FS:
+		case FITRIM:
+		case EXT4_IOC_PRECACHE_EXTENTS:
+		case FS_IOC_SET_ENCRYPTION_POLICY:
+		case FS_IOC_GET_ENCRYPTION_PWSALT:
+		case FS_IOC_ADD_ENCRYPTION_KEY:
+		case FS_IOC_REMOVE_ENCRYPTION_KEY:
+		case FS_IOC_REMOVE_ENCRYPTION_KEY_ALL_USERS:
+		case EXT4_IOC_CLEAR_ES_CACHE:
+		case EXT4_IOC_SHUTDOWN:
+		case FS_IOC_ENABLE_VERITY:
+		case EXT4_IOC_CHECKPOINT:
 			rsbac_request = R_MODIFY_PERMISSIONS_DATA;
 			break;
 		default:
