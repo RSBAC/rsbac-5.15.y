@@ -19,6 +19,8 @@
 
 #include "sysfs.h"
 
+#include <rsbac/hooks.h>
+
 /*
  * Determine ktype->sysfs_ops for the given kernfs_node.  This function
  * must be called while holding an active reference.
@@ -44,6 +46,25 @@ static int sysfs_kf_seq_show(struct seq_file *sf, void *v)
 	const struct sysfs_ops *ops = sysfs_file_ops(of->kn);
 	ssize_t count;
 	char *buf;
+
+#ifdef CONFIG_RSBAC
+	union rsbac_target_id_t rsbac_target_id;
+	union rsbac_attribute_value_t rsbac_attribute_value;
+#endif
+
+#ifdef CONFIG_RSBAC
+	rsbac_pr_debug(aef, "[sysfs_kf_seq_show()]: calling ADF\n");
+	rsbac_target_id.scd = ST_sysfs;
+	rsbac_attribute_value.dummy = 0;
+	if (!rsbac_adf_request(R_GET_STATUS_DATA,
+				task_pid(current),
+				T_SCD,
+				rsbac_target_id,
+				A_owner,
+				rsbac_attribute_value)) {
+		return -EPERM;
+	}
+#endif
 
 	/* acquire buffer and ensure that it's >= PAGE_SIZE and clear */
 	count = seq_get_buf(sf, &buf);
@@ -84,6 +105,11 @@ static ssize_t sysfs_kf_bin_read(struct kernfs_open_file *of, char *buf,
 	struct kobject *kobj = of->kn->parent->priv;
 	loff_t size = file_inode(of->file)->i_size;
 
+#ifdef CONFIG_RSBAC
+	union rsbac_target_id_t rsbac_target_id;
+	union rsbac_attribute_value_t rsbac_attribute_value;
+#endif
+
 	if (!count)
 		return 0;
 
@@ -96,6 +122,20 @@ static ssize_t sysfs_kf_bin_read(struct kernfs_open_file *of, char *buf,
 
 	if (!battr->read)
 		return -EIO;
+
+#ifdef CONFIG_RSBAC
+	rsbac_pr_debug(aef, "[sysfs_kf_bin_read()]: calling ADF\n");
+	rsbac_target_id.scd = ST_sysfs;
+	rsbac_attribute_value.dummy = 0;
+	if (!rsbac_adf_request(R_GET_STATUS_DATA,
+				task_pid(current),
+				T_SCD,
+				rsbac_target_id,
+				A_owner,
+				rsbac_attribute_value)) {
+		return -EPERM;
+	}
+#endif
 
 	return battr->read(of->file, kobj, battr, buf, pos, count);
 }
@@ -133,8 +173,27 @@ static ssize_t sysfs_kf_write(struct kernfs_open_file *of, char *buf,
 	const struct sysfs_ops *ops = sysfs_file_ops(of->kn);
 	struct kobject *kobj = of->kn->parent->priv;
 
+#ifdef CONFIG_RSBAC
+	union rsbac_target_id_t rsbac_target_id;
+	union rsbac_attribute_value_t rsbac_attribute_value;
+#endif
+
 	if (!count)
 		return 0;
+
+#ifdef CONFIG_RSBAC
+	rsbac_pr_debug(aef, "[sysfs_kf_write()]: calling ADF\n");
+	rsbac_target_id.scd = ST_sysfs;
+	rsbac_attribute_value.dummy = 0;
+	if (!rsbac_adf_request(R_MODIFY_SYSTEM_DATA,
+				task_pid(current),
+				T_SCD,
+				rsbac_target_id,
+				A_none,
+				rsbac_attribute_value)) {
+		return -EPERM;
+	}
+#endif
 
 	return ops->store(kobj, of->kn->priv, buf, count);
 }
@@ -147,6 +206,11 @@ static ssize_t sysfs_kf_bin_write(struct kernfs_open_file *of, char *buf,
 	struct kobject *kobj = of->kn->parent->priv;
 	loff_t size = file_inode(of->file)->i_size;
 
+#ifdef CONFIG_RSBAC
+	union rsbac_target_id_t rsbac_target_id;
+	union rsbac_attribute_value_t rsbac_attribute_value;
+#endif
+
 	if (size) {
 		if (size <= pos)
 			return -EFBIG;
@@ -158,6 +222,20 @@ static ssize_t sysfs_kf_bin_write(struct kernfs_open_file *of, char *buf,
 	if (!battr->write)
 		return -EIO;
 
+#ifdef CONFIG_RSBAC
+	rsbac_pr_debug(aef, "[sysfs_kf_bin_write()]: calling ADF\n");
+	rsbac_target_id.scd = ST_sysfs;
+	rsbac_attribute_value.dummy = 0;
+	if (!rsbac_adf_request(R_MODIFY_SYSTEM_DATA,
+				task_pid(current),
+				T_SCD,
+				rsbac_target_id,
+				A_none,
+				rsbac_attribute_value)) {
+		return -EPERM;
+	}
+#endif
+
 	return battr->write(of->file, kobj, battr, buf, pos, count);
 }
 
@@ -166,6 +244,25 @@ static int sysfs_kf_bin_mmap(struct kernfs_open_file *of,
 {
 	struct bin_attribute *battr = of->kn->priv;
 	struct kobject *kobj = of->kn->parent->priv;
+
+#ifdef CONFIG_RSBAC
+	union rsbac_target_id_t rsbac_target_id;
+	union rsbac_attribute_value_t rsbac_attribute_value;
+#endif
+
+#ifdef CONFIG_RSBAC
+	rsbac_pr_debug(aef, "[sysfs_kf_bin_write()]: calling ADF\n");
+	rsbac_target_id.scd = ST_sysfs;
+	rsbac_attribute_value.dummy = 0;
+	if (!rsbac_adf_request(R_MODIFY_SYSTEM_DATA,
+				task_pid(current),
+				T_SCD,
+				rsbac_target_id,
+				A_none,
+				rsbac_attribute_value)) {
+		return -EPERM;
+	}
+#endif
 
 	return battr->mmap(of->file, kobj, battr, vma);
 }
