@@ -6,7 +6,7 @@
 /*                                           */
 /* Debug and logging functions for all parts */
 /*                                           */
-/* Last modified: 04/Oct/2021                */
+/* Last modified: 09/Nov/2021                */
 /******************************************* */
  
 #include <linux/uaccess.h>
@@ -1162,7 +1162,6 @@ static DEFINE_SPINLOCK(rsbac_log_remote_lock);
 int rsbac_log(int type, char * buf, int len)
 {
 	unsigned long count;
-	int do_clear = 0;
 	int error = 0;
 	char * k_buf;
 
@@ -1256,8 +1255,37 @@ int rsbac_log(int type, char * buf, int len)
 		rsbac_kfree(k_buf);
 		break;
 	case 4:		/* Read/clear last kernel messages */
-		do_clear = 1; 
-		/* FALL THRU */
+		error = -EINVAL;
+		if (!buf || len < 0)
+			goto out;
+		error = 0;
+		if (!len)
+			goto out;
+		error = access_ok(buf,len);
+		if (!error)
+			goto out;
+		if (len > RSBAC_LOG_MAXREADBUF)
+			len = RSBAC_LOG_MAXREADBUF;
+		k_buf = rsbac_kmalloc(len);
+		count = 0;
+		spin_lock(&rsbac_log_lock);
+		log_item = log_list_head.head;
+		while (log_item && (count + log_item->size < len)) {
+			memcpy(k_buf + count, log_item->buffer, log_item->size);
+			count += log_item->size;
+			log_item = log_item->next;
+			kfree(log_list_head.head);
+			log_list_head.head = log_item;
+			if(!log_item)
+				log_list_head.tail = NULL;
+			log_list_head.count--;
+		}
+		spin_unlock(&rsbac_log_lock);
+		error = copy_to_user(buf, k_buf, count);
+		if (!error)
+			error = count;
+		rsbac_kfree(k_buf);
+		break;
 	case 3:		/* Read last kernel messages */
 		error = -EINVAL;
 		if (!buf || len < 0)
@@ -1278,13 +1306,6 @@ int rsbac_log(int type, char * buf, int len)
 			memcpy(k_buf + count, log_item->buffer, log_item->size);
 			count += log_item->size;
 			log_item = log_item->next;
-			if(do_clear) {
-				kfree(log_list_head.head);
-				log_list_head.head = log_item;
-				if(!log_item)
-					log_list_head.tail = NULL;
-				log_list_head.count--;
-			}
 		}
 		spin_unlock(&rsbac_log_lock);
 		error = copy_to_user(buf, k_buf, count);

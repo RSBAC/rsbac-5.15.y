@@ -1,9 +1,9 @@
 /************************************* */
 /* Rule Set Based Access Control       */
-/* Author and (c) 1999-2020: Amon Ott  */
+/* Author and (c) 1999-2021: Amon Ott  */
 /* File system                         */
 /* helper functions for all parts      */
-/* Last modified: 31/Mar/2020          */
+/* Last modified: 09/Nov/2021          */
 /************************************* */
 
 #ifndef __RSBAC_FS_H
@@ -14,7 +14,6 @@
 #include <linux/root_dev.h>
 #include <linux/sched.h>
 #include <linux/cred.h>
-#include <linux/eventpoll.h>
 
 #ifndef SOCKFS_MAGIC
 #define SOCKFS_MAGIC 0x534F434B
@@ -49,7 +48,6 @@ static inline int init_private_file(struct file *filp, struct dentry *dentry, in
 	file_ra_state_init(&filp->f_ra, filp->f_mapping);
 	spin_lock_init(&filp->f_lock);
 	mutex_init(&filp->f_pos_lock);
-	eventpoll_init_file(filp);
 	filp->f_flags = dentry->d_inode->i_flags;
 	if (filp->f_op->open)
 		return filp->f_op->open(dentry->d_inode, filp);
