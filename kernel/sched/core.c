@@ -8160,7 +8160,6 @@ static int
 __sched_setaffinity(struct task_struct *p, const struct cpumask *mask)
 {
 	int retval;
-
 	cpumask_var_t cpus_allowed, new_mask;
 
 	if (!alloc_cpumask_var(&cpus_allowed, GFP_KERNEL))
@@ -8262,7 +8261,6 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 	}
 #endif
 	retval = __sched_setaffinity(p, in_mask);
-
 out_put_task:
 	put_task_struct(p);
 	return retval;
