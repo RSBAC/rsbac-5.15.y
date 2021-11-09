@@ -6,7 +6,7 @@
 /*                                                   */
 /* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 28/Sep/2021                        */
+/* Last modified: 09/Nov/2021                        */
 /*************************************************** */
 
 #include <linux/string.h>
@@ -347,8 +347,7 @@ rsbac_adf_request_check(enum rsbac_adf_request_t request,
 			/* there must be a new group specified */
 			if (attr == A_group)
 				return DO_NOT_CARE;
-			/* fall through */
-			/* all other cases are undefined */
+			return UNDEFINED;
 		default:
 			return UNDEFINED;
 		}
@@ -391,8 +390,7 @@ rsbac_adf_request_check(enum rsbac_adf_request_t request,
 			/* there must be a new owner specified */
 			if (attr == A_owner)
 				return DO_NOT_CARE;
-			/* fall through */
-			/* all other cases are undefined */
+			return UNDEFINED;
 		default:
 			return UNDEFINED;
 		}
@@ -605,8 +603,7 @@ rsbac_adf_request_check(enum rsbac_adf_request_t request,
 			/* there must be a switch target specified */
 			if (attr == A_switch_target)
 				return DO_NOT_CARE;
-			/* fall through */
-			/* all other cases are undefined */
+			return UNDEFINED;
 		default:
 			return UNDEFINED;
 		}
@@ -744,7 +741,7 @@ int rsbac_adf_set_attr_check(enum rsbac_adf_request_t request,
 			/* there must be a new owner specified */
 			if (attr != A_owner)
 				return -RSBAC_EINVALIDATTR;
-			/* fall through */
+			return 0;
 		case T_FILE:
 		case T_DIR:
 		case T_FIFO:
