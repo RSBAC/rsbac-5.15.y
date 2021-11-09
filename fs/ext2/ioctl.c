@@ -27,59 +27,6 @@ int ext2_fileattr_get(struct dentry *dentry, struct fileattr *fa)
 {
 	struct ext2_inode_info *ei = EXT2_I(d_inode(dentry));
 
-#ifdef CONFIG_RSBAC
-	enum  rsbac_target_t rsbac_target = T_NONE;
-	union rsbac_target_id_t rsbac_target_id;
-	union rsbac_attribute_value_t rsbac_attribute_value;
-#endif
-
-#ifdef CONFIG_RSBAC
-	rsbac_pr_debug(aef, "calling ADF\n");
-	if(S_ISSOCK(d_inode(dentry)->i_mode)) {
-		if(SOCKET_I(inode)->ops
-				&& (SOCKET_I(d_inode(dentry))->ops->family == AF_UNIX)) {
-			rsbac_target = T_UNIXSOCK;
-			rsbac_target_id.unixsock.device = dentry->d_sb->s_dev;
-			rsbac_target_id.unixsock.inode  = d_inode(dentry)->i_ino;
-			rsbac_target_id.unixsock.dentry_p = dentry;
-		}
-#ifdef CONFIG_RSBAC_NET_OBJ
-		else {
-			rsbac_target = T_NETOBJ;
-			rsbac_target_id.netobj.sock_p
-				= SOCKET_I(d_inode(dentry));
-			rsbac_target_id.netobj.local_addr = NULL;
-			rsbac_target_id.netobj.local_len = 0;
-			rsbac_target_id.netobj.remote_addr = NULL;
-			rsbac_target_id.netobj.remote_len = 0;
-		}
-#endif
-	}
-	else {
-		if (S_ISDIR(d_inode(dentry)->i_mode))
-			rsbac_target = T_DIR;
-		else if (S_ISFIFO(d_inode(dentry)->i_mode))
-			rsbac_target = T_FIFO;
-		else if (S_ISLNK(d_inode(dentry)->i_mode))
-			rsbac_target = T_SYMLINK;
-		else
-			rsbac_target = T_FILE;
-		rsbac_target_id.file.device = dentry->d_sb->s_dev;
-		rsbac_target_id.file.inode  = d_inode(dentry)->i_ino;
-		rsbac_target_id.file.dentry_p = dentry;
-	}
-	rsbac_attribute_value.ioctl_cmd = cmd;
-	if(!rsbac_adf_request(R_GET_PERMISSIONS_DATA,
-				task_pid(current),
-				rsbac_target,
-				rsbac_target_id,
-				A_ioctl_cmd,
-				rsbac_attribute_value))
-	{
-		return -EPERM;
-	}
-#endif
-
 	fileattr_fill_flags(fa, ei->i_flags & EXT2_FL_USER_VISIBLE);
 
 	return 0;
@@ -91,12 +38,6 @@ int ext2_fileattr_set(struct user_namespace *mnt_userns,
 	struct inode *inode = d_inode(dentry);
 	struct ext2_inode_info *ei = EXT2_I(inode);
 
-#ifdef CONFIG_RSBAC
-	enum  rsbac_target_t rsbac_target = T_NONE;
-	union rsbac_target_id_t rsbac_target_id;
-	union rsbac_attribute_value_t rsbac_attribute_value;
-#endif
-
 	if (fileattr_has_fsx(fa))
 		return -EOPNOTSUPP;
 
@@ -104,15 +45,52 @@ int ext2_fileattr_set(struct user_namespace *mnt_userns,
 	if (IS_NOQUOTA(inode))
 		return -EPERM;
 
+	ei->i_flags = (ei->i_flags & ~EXT2_FL_USER_MODIFIABLE) |
+		(fa->flags & EXT2_FL_USER_MODIFIABLE);
+
+	ext2_set_inode_flags(inode);
+	inode->i_ctime = current_time(inode);
+	mark_inode_dirty(inode);
+
+	return 0;
+}
+
+
+long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	struct inode *inode = file_inode(filp);
+	struct ext2_inode_info *ei = EXT2_I(inode);
+	unsigned short rsv_window_size;
+	int ret;
+
+#ifdef CONFIG_RSBAC
+	enum  rsbac_adf_request_t rsbac_request;
+	enum  rsbac_target_t rsbac_target = T_NONE;
+	union rsbac_target_id_t rsbac_target_id;
+	union rsbac_attribute_value_t rsbac_attribute_value;
+#endif
+
 #ifdef CONFIG_RSBAC
 	rsbac_pr_debug(aef, "calling ADF\n");
+	switch (cmd) {
+		case EXT2_IOC_GETVERSION:
+		case EXT2_IOC_GETRSVSZ:
+			rsbac_request = R_GET_PERMISSIONS_DATA;
+			break;
+		case EXT2_IOC_SETVERSION:
+		case EXT2_IOC_SETRSVSZ:
+			rsbac_request = R_MODIFY_PERMISSIONS_DATA;
+			break;
+		default:
+			rsbac_request = R_NONE;
+	}
 	if(S_ISSOCK(inode->i_mode)) {
 		if(SOCKET_I(inode)->ops
 				&& (SOCKET_I(inode)->ops->family == AF_UNIX)) {
 			rsbac_target = T_UNIXSOCK;
-			rsbac_target_id.unixsock.device = dentry->d_sb->s_dev;
+			rsbac_target_id.unixsock.device = filp->f_path.dentry->d_sb->s_dev;
 			rsbac_target_id.unixsock.inode  = inode->i_ino;
-			rsbac_target_id.unixsock.dentry_p = dentry;
+			rsbac_target_id.unixsock.dentry_p = filp->f_path.dentry;
 		}
 #ifdef CONFIG_RSBAC_NET_OBJ
 		else {
@@ -135,12 +113,13 @@ int ext2_fileattr_set(struct user_namespace *mnt_userns,
 			rsbac_target = T_SYMLINK;
 		else
 			rsbac_target = T_FILE;
-		rsbac_target_id.file.device = dentry->d_sb->s_dev;
+		rsbac_target_id.file.device = filp->f_path.dentry->d_sb->s_dev;
 		rsbac_target_id.file.inode  = inode->i_ino;
-		rsbac_target_id.file.dentry_p = dentry;
+		rsbac_target_id.file.dentry_p = filp->f_path.dentry;
 	}
 	rsbac_attribute_value.ioctl_cmd = cmd;
-	if(!rsbac_adf_request(R_MODIFY_PERMISSIONS_DATA,
+	if(   (rsbac_request != R_NONE)
+			&& !rsbac_adf_request(rsbac_request,
 				task_pid(current),
 				rsbac_target,
 				rsbac_target_id,
@@ -150,24 +129,6 @@ int ext2_fileattr_set(struct user_namespace *mnt_userns,
 		return -EPERM;
 	}
 #endif
-
-	ei->i_flags = (ei->i_flags & ~EXT2_FL_USER_MODIFIABLE) |
-		(fa->flags & EXT2_FL_USER_MODIFIABLE);
-
-	ext2_set_inode_flags(inode);
-	inode->i_ctime = current_time(inode);
-	mark_inode_dirty(inode);
-
-	return 0;
-}
-
-
-long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-{
-	struct inode *inode = file_inode(filp);
-	struct ext2_inode_info *ei = EXT2_I(inode);
-	unsigned short rsv_window_size;
-	int ret;
 
 	ext2_debug ("cmd = %u, arg = %lu\n", cmd, arg);
 

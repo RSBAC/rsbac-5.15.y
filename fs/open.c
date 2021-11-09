@@ -1666,7 +1666,7 @@ int filp_close(struct file *filp, fl_owner_t id)
 				if (SOCKET_I(filp->f_path.dentry->d_inode)) {
 //					printk(KERN_DEBUG "filp_close: SOCKET_I(filp->f_path.dentry->d_inode)->ops is %px\n", SOCKET_I(filp->f_path.dentry->d_inode)->ops);
 					if(   SOCKET_I(filp->f_path.dentry->d_inode)->ops
-					   && (SOCKET_I(filp->f_path.dentry->d_inode)->ops != (void *) ((__u32) -1) )
+					   && !IS_ERR(SOCKET_I(filp->f_path.dentry->d_inode)->ops)
 					  ) {
 						if (SOCKET_I(filp->f_path.dentry->d_inode)->ops->family == AF_UNIX) {
 							rsbac_target = T_UNIXSOCK;
