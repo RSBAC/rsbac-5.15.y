@@ -164,7 +164,7 @@ retry:
 		if (err)
 			return err;
 
-		err = inode_permission(kernel_path.dentry->d_inode, MAY_EXEC | MAY_CHDIR);
+		err = inode_permission(mnt_user_ns(kernel_path.mnt), kernel_path.dentry->d_inode, MAY_EXEC | MAY_CHDIR);
 		if (err) {
 			goto dput_and_out;
 		}
@@ -190,11 +190,11 @@ restart:
 
 		for(fd=0; fd < fdt->max_fds; fd++)
 		{
-			file = fcheck(fd);
+			file = fdt->fd[fd];
 			if(   file
-					&& file->f_path.dentry
-					&& file->f_path.dentry->d_inode
-					&& S_ISDIR(file->f_path.dentry->d_inode->i_mode)
+				&& file->f_path.dentry
+				&& file->f_path.dentry->d_inode
+				&& S_ISDIR(file->f_path.dentry->d_inode->i_mode)
 			  )
 			{
 				char * filename;
@@ -220,7 +220,7 @@ restart:
 				if(filename)
 					rsbac_kfree(filename);
 
-				ksys_close(fd);
+				filp_close(file, files);
 				goto restart;
 			}
 		}
