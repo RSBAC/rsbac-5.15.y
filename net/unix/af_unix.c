@@ -1228,6 +1228,7 @@ static int unix_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 	if (err < 0)
 		return err;
 	addr_len = err;
+
 #ifdef CONFIG_RSBAC
 	if (!sun_path[0]) {
 		rsbac_pr_debug(aef, "unix_bind() [sys_bind()]: calling ADF\n");
@@ -1247,8 +1248,7 @@ static int unix_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 					A_sock_type,
 					rsbac_attribute_value)) {
 			rsbac_pr_debug(aef, "unix_bind() [sys_bind()]: ADF returned NOT_GRANTED\n");
-			err = -EPERM;
-			goto out;
+			return -EPERM;
 		}
 	} else {
 		/* RSBAC add: set credentials so that sendto() can copy them */
@@ -1268,7 +1268,7 @@ static int unix_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 
 	if (sun_path[0])
 		err = unix_bind_bsd(sk, addr);
-	else
+	else {
 		err = unix_bind_abstract(sk, addr);
 
 #ifdef CONFIG_RSBAC
@@ -1284,6 +1284,8 @@ static int unix_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 			rsbac_printk(KERN_WARNING
 					"unix_bind() [sys_bind()]: rsbac_adf_set_attr() returned error\n");
 #endif
+
+	}
 
 	if (err)
 		unix_release_addr(addr);
@@ -1410,7 +1412,6 @@ restart:
 
 		WRITE_ONCE(sk->sk_state, TCP_ESTABLISHED);
 		WRITE_ONCE(other->sk_state, TCP_ESTABLISHED);
-
 	} else {
 		/*
 		 *	1003.1g breaking connected state with AF_UNSPEC
