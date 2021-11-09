@@ -3013,6 +3013,46 @@ static int do_move_mount(struct path *old_path, struct path *new_path)
 	old_mp = old->mnt_mp;
 	ns = old->mnt_ns;
 
+	err = -EINVAL;
+	/* The mountpoint must be in our namespace. */
+	if (!check_mnt(p))
+		goto out;
+
+	/* The thing moved must be mounted... */
+	if (!is_mounted(&old->mnt))
+		goto out;
+
+	/* ... and either ours or the root of anon namespace */
+	if (!(attached ? check_mnt(old) : is_anon_ns(ns)))
+		goto out;
+
+	if (old->mnt.mnt_flags & MNT_LOCKED)
+		goto out;
+
+	if (old_path->dentry != old_path->mnt->mnt_root)
+		goto out;
+
+	if (d_is_dir(new_path->dentry) !=
+	    d_is_dir(old_path->dentry))
+		goto out;
+	/*
+	 * Don't move a mount residing in a shared parent.
+	 */
+	if (attached && IS_MNT_SHARED(parent))
+		goto out;
+	/*
+	 * Don't move a mount tree containing unbindable mounts to a destination
+	 * mount which is shared.
+	 */
+	if (IS_MNT_SHARED(p) && tree_contains_unbindable(old))
+		goto out;
+	err = -ELOOP;
+	if (!check_for_nsfs_mounts(old))
+		goto out;
+	for (; mnt_has_parent(p); p = p->mnt_parent)
+		if (p == old)
+			goto out;
+
 #ifdef CONFIG_RSBAC
 	rsbac_pr_debug(aef, "[do_mount() [sys_mount()]]: calling ADF for UMOUNT on old DIR\n");
 	rsbac_target_id.dir.device = old_path->dentry->d_sb->s_dev;
@@ -3066,47 +3106,6 @@ static int do_move_mount(struct path *old_path, struct path *new_path)
 		goto out;
 	}
 #endif
-
-
-	err = -EINVAL;
-	/* The mountpoint must be in our namespace. */
-	if (!check_mnt(p))
-		goto out;
-
-	/* The thing moved must be mounted... */
-	if (!is_mounted(&old->mnt))
-		goto out;
-
-	/* ... and either ours or the root of anon namespace */
-	if (!(attached ? check_mnt(old) : is_anon_ns(ns)))
-		goto out;
-
-	if (old->mnt.mnt_flags & MNT_LOCKED)
-		goto out;
-
-	if (old_path->dentry != old_path->mnt->mnt_root)
-		goto out;
-
-	if (d_is_dir(new_path->dentry) !=
-	    d_is_dir(old_path->dentry))
-		goto out;
-	/*
-	 * Don't move a mount residing in a shared parent.
-	 */
-	if (attached && IS_MNT_SHARED(parent))
-		goto out;
-	/*
-	 * Don't move a mount tree containing unbindable mounts to a destination
-	 * mount which is shared.
-	 */
-	if (IS_MNT_SHARED(p) && tree_contains_unbindable(old))
-		goto out;
-	err = -ELOOP;
-	if (!check_for_nsfs_mounts(old))
-		goto out;
-	for (; mnt_has_parent(p); p = p->mnt_parent)
-		if (p == old)
-			goto out;
 
 	err = attach_recursive_mnt(old, real_mount(new_path->mnt), mp,
 				   attached);
