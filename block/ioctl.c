@@ -495,6 +495,9 @@ static int blkdev_common_ioctl(struct block_device *bdev, fmode_t mode,
 		case BLKSECTGET:
 		case BLKSSZGET:
 		case BLKBSZGET:
+		case BLKGETDISKSEQ:
+		case BLKGETZONESZ:
+		case BLKGETNRZONES:
 		case HDIO_GETGEO:
 		case HDIO_OBSOLETE_IDENTITY:
 		case HDIO_GET_UNMASKINTR:
