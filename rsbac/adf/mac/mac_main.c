@@ -171,7 +171,7 @@ auto_write_attr(rsbac_pid_t pid,
 					    ) {
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 					rsbac_pr_debug(adf_mac, "pid %u(%s): current security_level %u under target_sec_level %u, no auto, write_up, trusted -> NOT_GRANTED!\n",
@@ -237,7 +237,7 @@ auto_write_attr(rsbac_pid_t pid,
 							}
 							break;
 						}
-						/* fall through */
+						fallthrough;
 
 					default:
 						rsbac_pr_debug(adf_mac, "pid %u(%s): max_read_open %u over target_sec_level %u, no write_down or trusted -> NOT_GRANTED!\n",
@@ -284,7 +284,7 @@ auto_write_attr(rsbac_pid_t pid,
 						}
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 					rsbac_pr_debug(adf_mac, "pid %u(%s): current security_level %u over target_sec_level %u, no auto, write_down or trusted -> NOT_GRANTED!\n",
@@ -362,7 +362,7 @@ auto_write_attr(rsbac_pid_t pid,
 						MAC_trusted)
 					    )
 						break;
-					/* fall through */
+					fallthrough;
 
 				default:
 #ifdef CONFIG_RSBAC_DEBUG
@@ -481,7 +481,7 @@ auto_write_attr(rsbac_pid_t pid,
 							}
 							break;
 						}
-						/* fall through */
+						fallthrough;
 
 					default:
 #ifdef CONFIG_RSBAC_DEBUG
@@ -556,7 +556,7 @@ auto_write_attr(rsbac_pid_t pid,
 						}
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 #ifdef CONFIG_RSBAC_DEBUG
@@ -918,7 +918,7 @@ auto_read_attr(rsbac_pid_t pid,
 						    ) {
 							break;
 						}
-						/* fall through */
+						fallthrough;
 
 					default:
 						rsbac_pr_debug(adf_mac, "pid %u(%s): min_write_open %u under target_sec_level %u, no read_up or trusted -> NOT_GRANTED!\n",
@@ -963,7 +963,7 @@ auto_read_attr(rsbac_pid_t pid,
 					    ) {
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 					rsbac_pr_debug(adf_mac, "pid %u(%s): current level %u under target_sec_level %u, no auto, read_up or trusted -> NOT_GRANTED!\n",
@@ -1057,7 +1057,7 @@ auto_read_attr(rsbac_pid_t pid,
 						    ) {
 							break;
 						}
-						/* fall through */
+						fallthrough;
 
 					default:
 #ifdef CONFIG_RSBAC_DEBUG
@@ -1132,7 +1132,7 @@ auto_read_attr(rsbac_pid_t pid,
 					    ) {
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 #ifdef CONFIG_RSBAC_DEBUG
@@ -1454,7 +1454,7 @@ auto_read_write_attr(rsbac_pid_t pid,
 						    ) {
 							break;
 						}
-						/* fall through */
+						fallthrough;
 
 					default:
 						rsbac_pr_debug(adf_mac, "pid %u(%s): min_write_open %u under target_sec_level %u, no read_up or trusted -> NOT_GRANTED!\n",
@@ -1502,7 +1502,7 @@ auto_read_write_attr(rsbac_pid_t pid,
 					    ) {
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 					rsbac_pr_debug(adf_mac, "pid %u(%s): current level %u under target_sec_level %u, no auto, (write_up && read_up) or trusted -> NOT_GRANTED!\n",
@@ -1569,7 +1569,7 @@ auto_read_write_attr(rsbac_pid_t pid,
 							}
 							break;
 						}
-						/* fall through */
+						fallthrough;
 
 					default:
 						rsbac_pr_debug(adf_mac, "pid %u(%s): max_read_open %u over target_sec_level %u, no write_down or trusted -> NOT_GRANTED!\n",
@@ -1616,7 +1616,7 @@ auto_read_write_attr(rsbac_pid_t pid,
 						}
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 					rsbac_pr_debug(adf_mac, "pid %u(%s): current security_level %u over target_sec_level %u, no auto, write_down or trusted -> NOT_GRANTED!\n",
@@ -1712,7 +1712,7 @@ auto_read_write_attr(rsbac_pid_t pid,
 						    ) {
 							break;
 						}
-						/* fall through */
+						fallthrough;
 
 					default:
 #ifdef CONFIG_RSBAC_DEBUG
@@ -1790,7 +1790,7 @@ auto_read_write_attr(rsbac_pid_t pid,
 					    ) {
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 #ifdef CONFIG_RSBAC_DEBUG
@@ -1909,7 +1909,7 @@ auto_read_write_attr(rsbac_pid_t pid,
 							}
 							break;
 						}
-						/* fall through */
+						fallthrough;
 
 					default:
 #ifdef CONFIG_RSBAC_DEBUG
@@ -1985,7 +1985,7 @@ auto_read_write_attr(rsbac_pid_t pid,
 						}
 						break;
 					}
-					/* fall through */
+					fallthrough;
 
 				default:
 #ifdef CONFIG_RSBAC_DEBUG
