@@ -1208,15 +1208,15 @@ static int loop_configure(struct loop_device *lo, fmode_t mode,
 	unsigned short bsize;
 	bool is_loop;
 
-	if (!file)
-		return -EBADF;
-	is_loop = is_loop_device(file);
-
 #ifdef CONFIG_RSBAC
 	enum  rsbac_target_t rsbac_target;
 	union rsbac_target_id_t rsbac_target_id;
 	union rsbac_attribute_value_t rsbac_attribute_value;
 #endif
+
+	if (!file)
+		return -EBADF;
+	is_loop = is_loop_device(file);
 
 	/* This is safe, since we have a reference from open(). */
 	__module_get(THIS_MODULE);
