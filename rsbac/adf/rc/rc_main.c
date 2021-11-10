@@ -634,7 +634,6 @@ int rsbac_rc_test_admin_roles(rsbac_rc_role_id_t t_role,
 					i_rc_subtid,
 					RI_assign_roles, R_NONE))
 			return 0;
-		/* fall through */
 	}
 	/* check admin_roles of role */
 	if (rsbac_rc_check_comp(i_attr_val1.rc_role,
@@ -2649,7 +2648,7 @@ inline int rsbac_adf_set_attr_rc(enum rsbac_adf_request_t request,
 					/* set rc_type for process to general */
 					i_rc_item_val1.type_id =
 					    RSBAC_RC_GENERAL_TYPE;
-					/* fall through */
+					fallthrough;
 				default:
 					/* set rc_type for process */
 					i_attr_val1.rc_type =
@@ -2670,7 +2669,7 @@ inline int rsbac_adf_set_attr_rc(enum rsbac_adf_request_t request,
 				/* set rc_type for process to general */
 				i_rc_item_val1.type_id =
 				    RSBAC_RC_GENERAL_TYPE;
-				/* fall through */
+				fallthrough;
 			default:
 				/* set rc_type for process */
 				i_attr_val1.rc_type =
@@ -2860,7 +2859,7 @@ inline int rsbac_adf_set_attr_rc(enum rsbac_adf_request_t request,
 					}
 					if(i_rc_item_val1.type_id != RC_type_use_fd)
 						break;
-					/* fall through */
+					fallthrough;
 				default:
 					i_rc_subtid.type = i_attr_val2.rc_type;
 					if ((err = rsbac_rc_get_item(0, RT_ROLE, i_rc_tid, i_rc_subtid, RI_def_fd_ind_create_type, &i_rc_item_val1, NULL))) {	/* No individual create type -> try global */
