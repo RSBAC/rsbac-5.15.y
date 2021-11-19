@@ -4,7 +4,7 @@
 /*   Amon Ott <ao@rsbac.org>         */
 /* API: Data types for attributes    */
 /*      and standard module calls    */
-/* Last modified: 04/Oct/2021        */
+/* Last modified: 19/Nov/2021        */
 /*********************************** */
 
 #ifndef __RSBAC_TYPES_H
@@ -795,6 +795,7 @@ enum rsbac_attribute_t
     A_perf_flags,
     A_memfd_name,
     A_rc_force_ipc_type,
+    A_memfd_keep,
     A_none};
 
 #define A_last_user A_udf_do_check
@@ -918,6 +919,7 @@ union rsbac_attribute_value_t
          u_long                      perf_flags;
          char                      * memfd_name;
          rsbac_boolean_t             rc_force_ipc_type;
+         rsbac_boolean_t             memfd_keep;
          u_char                      u_char_dummy;
          u_short                     u_short_dummy;
          int                         dummy;
