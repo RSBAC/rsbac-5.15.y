@@ -1772,12 +1772,16 @@ static void iput_final(struct inode *inode)
 
 #ifdef CONFIG_RSBAC
 	if (inode->i_rsbac_memfd) {
-		union rsbac_target_id_t rsbac_target_id;
+		if (!rsbac_memfd_keep) {
+			union rsbac_target_id_t rsbac_target_id;
 
-		rsbac_pr_debug(memfd, "remove_target() for memfd %u\n", inode->i_ino);
-		rsbac_target_id.ipc.type = I_memfd;
-		rsbac_target_id.ipc.id.id_nr = inode->i_ino;
-		rsbac_remove_target(T_IPC, &rsbac_target_id);
+			rsbac_pr_debug(memfd, "remove_target() for memfd %u\n", inode->i_ino);
+			rsbac_target_id.ipc.type = I_memfd;
+			rsbac_target_id.ipc.id.id_nr = inode->i_ino;
+			rsbac_remove_target(T_IPC, &rsbac_target_id);
+		} else {
+			rsbac_pr_debug(memfd, "rsbac_memfd_keep is set, NOT calling remove_target() for memfd %u\n", inode->i_ino);
+		}
 	}
 #endif
 
