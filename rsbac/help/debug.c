@@ -6,7 +6,7 @@
 /*                                           */
 /* Debug and logging functions for all parts */
 /*                                           */
-/* Last modified: 09/Nov/2021                */
+/* Last modified: 19/Nov/2021                */
 /******************************************* */
  
 #include <linux/uaccess.h>
@@ -174,6 +174,8 @@ int rsbac_debug_fdcache = 0;
 
 #endif /* DEBUG */
 
+int rsbac_memfd_keep = 0;
+
 #if defined(CONFIG_RSBAC_UM_EXCL)
 int  rsbac_um_no_excl = 0;
 #endif
@@ -331,6 +333,13 @@ __setup("rsbac_flags=", rsbac_flags_setup);
       return 1;
     }
 __setup("rsbac_no_defaults", no_defaults_setup);
+
+  static int R_INIT memfd_keep_setup(char *line)
+    {
+      rsbac_memfd_keep = 1;
+      return 1;
+    }
+  __setup("rsbac_memfd_keep", memfd_keep_setup);
 
   #if defined(CONFIG_RSBAC_UM_EXCL)
   static int R_INIT um_no_excl_setup(char *line)
@@ -1848,6 +1857,9 @@ debug_proc_show(struct seq_file *m, void *v)
                  RSBAC_MAJOR(rsbac_delayed_root), RSBAC_MINOR(rsbac_delayed_root));
 #endif
 
+  seq_printf(m, "rsbac_memfd_keep is %i\n",
+                 rsbac_memfd_keep);
+
 #if defined(CONFIG_RSBAC_UM_EXCL)
   seq_printf(m, "rsbac_um_no_excl is %i\n",
                  rsbac_um_no_excl);
@@ -2132,8 +2144,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_ind_softmode[%s] to %u\n",
+            if (rsbac_ind_softmode[sw_target] != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_ind_softmode[%s] to %u\n",
                    tmp,
                    debug_level);
             rsbac_ind_softmode[sw_target] = debug_level;
@@ -2191,8 +2204,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_softmode_prohibit to %u\n",
+            if (rsbac_softmode_prohibit != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_softmode_prohibit to %u\n",
                    debug_level);
             rsbac_softmode_prohibit = debug_level;
             err = count;
@@ -2313,8 +2327,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_freeze to %u\n",
+            if (rsbac_freeze != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_freeze to %u\n",
                    debug_level);
             rsbac_freeze = debug_level;
             err = count;
@@ -2365,8 +2380,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_list_rcu_rate to %u\n",
+            if (rsbac_list_rcu_rate != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_list_rcu_rate to %u\n",
                    tmp_rate);
             rsbac_list_rcu_rate = tmp_rate;
             err = count;
@@ -2408,8 +2424,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_list_auto_rehash_trigger to %u\n",
+            if (rsbac_list_auto_rehash_trigger != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_list_auto_rehash_trigger to %u\n",
                    tmp_trigger);
             rsbac_list_auto_rehash_trigger = tmp_trigger;
             err = count;
@@ -2521,8 +2538,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_log_remote_addr to %pI4\n",
+            if (rsbac_log_remote_addr != tmp_addr)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_log_remote_addr to %pI4\n",
                    &tmp_addr);
             rsbac_log_remote_addr = tmp_addr;
             err = count;
@@ -2577,8 +2595,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_log_remote_port to %u\n",
+            if (rsbac_log_remote_port != tmp_port)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_log_remote_port to %u\n",
                    tmp_port);
             rsbac_log_remote_port = htons(tmp_port);
             err = count;
@@ -2619,8 +2638,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_syslog_rate to %u\n",
+            if (rsbac_syslog_rate != tmp_rate)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_syslog_rate to %u\n",
                    tmp_rate);
             rsbac_syslog_rate = tmp_rate;
             err = count;
@@ -2661,8 +2681,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_fd_cache_ttl to %u\n",
+            if (rsbac_fd_cache_ttl != tmp_ttl)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_fd_cache_ttl to %u\n",
                    tmp_ttl);
             rsbac_fd_cache_ttl = tmp_ttl;
             err = count;
@@ -2703,8 +2724,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_um_old_pw_unset_days to %i\n",
+            if (rsbac_um_old_pw_unset_days != tmp_days)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_um_old_pw_unset_days to %i\n",
                    tmp_days);
             rsbac_um_old_pw_unset_days = tmp_days;
             err = count;
@@ -2744,8 +2766,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_um_name_cache_ttl to %u\n",
+            if (rsbac_um_name_cache_ttl != tmp_ttl)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_um_name_cache_ttl to %u\n",
                    tmp_ttl);
             rsbac_um_name_cache_ttl = tmp_ttl;
             err = count;
@@ -2784,8 +2807,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_um_name_cache_disable to %u\n",
+            if (rsbac_um_name_cache_disable != tmp_disable)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_um_name_cache_disable to %u\n",
                    tmp_disable);
             rsbac_um_name_cache_disable = tmp_disable;
             err = count;
@@ -2827,8 +2851,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_list_check_interval to %u\n",
+            if (rsbac_list_check_interval != tmp_ttl)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_list_check_interval to %u\n",
                    tmp_ttl);
             rsbac_list_check_interval = tmp_ttl;
             err = count;
@@ -2871,8 +2896,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_nosyslog to %u\n",
+            if (rsbac_nosyslog != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_nosyslog to %u\n",
                    debug_level);
             rsbac_nosyslog = debug_level;
             err = count;
@@ -2921,8 +2947,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rmsg_maxentries to %u\n",
+            if (rsbac_rmsg_maxentries != tmp_rate)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rmsg_maxentries to %u\n",
                    tmp_rate);
             rsbac_rmsg_maxentries = tmp_rate;
             err = count;
@@ -2963,14 +2990,57 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting log_remote_maxentries to %u\n",
+            if (rsbac_log_remote_maxentries != tmp_rate)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing log_remote_maxentries to %u\n",
                    tmp_rate);
             rsbac_log_remote_maxentries = tmp_rate;
             err = count;
             goto out;
       }
 #endif
+
+/* Boolean switch for keeping of memfd attributes */
+    /*
+     * Usage: echo "debug memfd_keep #N" > /proc/rsbac_info/debug
+     *   to set rsbac_memfd_keep to given value
+     */
+    if(!strncmp("memfd_keep", k_buf + 6, 10))
+      {
+	p += 11;
+
+        if( *p == '\0' )
+            goto out;
+
+        debug_level = simple_strtoul(p, NULL, 0);
+        /* only accept 0 or 1 */
+        if(!debug_level || (debug_level == 1))
+          {
+            rsbac_target_id.dummy = 0;
+            rsbac_attribute_value.memfd_keep = debug_level;
+            if (!rsbac_adf_request(R_MODIFY_ATTRIBUTE,
+                                   task_pid(current),
+                                   T_NONE,
+                                   rsbac_target_id,
+                                   A_memfd_keep,
+                                   rsbac_attribute_value))
+              {
+                err = -EPERM;
+                goto out;
+              }
+            if (rsbac_memfd_keep != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_memfd_keep to %u\n",
+                   debug_level);
+            rsbac_memfd_keep = debug_level;
+            err = count;
+            goto out;
+          }
+        else
+          {
+            goto out_inv;
+          }
+      }
 
 #if defined(CONFIG_RSBAC_RC_LEARN)
 /* Boolean switch for RC learning mode */
@@ -3001,8 +3071,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_rc_learn to %u\n",
+            if (rsbac_rc_learn != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_rc_learn to %u\n",
                    debug_level);
             rsbac_rc_learn = debug_level;
             err = count;
@@ -3033,7 +3104,7 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         if(!debug_level || (debug_level == 1))
           {
             rsbac_target_id.dummy = 0;
-            rsbac_attribute_value.rc_learn = debug_level;
+            rsbac_attribute_value.rc_force_ipc_type = debug_level;
             if (!rsbac_adf_request(R_MODIFY_ATTRIBUTE,
                                    task_pid(current),
                                    T_NONE,
@@ -3044,8 +3115,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_rc_force_ipc_type to %u\n",
+            if (rsbac_rc_force_ipc_type != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_rc_force_ipc_type to %u\n",
                    debug_level);
             rsbac_rc_force_ipc_type = debug_level;
             err = count;
@@ -3087,8 +3159,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_auth_learn to %u\n",
+            if (rsbac_auth_learn != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_auth_learn to %u\n",
                    debug_level);
             rsbac_auth_learn = debug_level;
             err = count;
@@ -3130,8 +3203,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_cap_learn to %u\n",
+            if (rsbac_cap_learn != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_cap_learn to %u\n",
                    debug_level);
             rsbac_cap_learn = debug_level;
             err = count;
@@ -3173,8 +3247,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_cap_log_missing to %u\n",
+            if (rsbac_cap_log_missing != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_cap_log_missing to %u\n",
                    debug_level);
             rsbac_cap_log_missing = debug_level;
             err = count;
@@ -3216,8 +3291,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_jail_log_missing to %u\n",
+            if (rsbac_jail_log_missing != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_jail_log_missing to %u\n",
                    debug_level);
             rsbac_jail_log_missing = debug_level;
             err = count;
@@ -3264,8 +3340,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                 err = -EPERM;
                 goto out;
               }
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_acl_learn_fd to %u\n",
+            if (rsbac_acl_learn_fd != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_acl_learn_fd to %u\n",
                    debug_level);
             rsbac_acl_learn_fd = debug_level;
             err = count;
@@ -3313,8 +3390,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_ds_net to %u\n",
+            if (rsbac_debug_ds_net != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_ds_net to %u\n",
                    debug_level);
             rsbac_debug_ds_net = debug_level;
             err = count;
@@ -3341,8 +3419,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_aef_net to %u\n",
+            if (rsbac_debug_aef_net != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_aef_net to %u\n",
                    debug_level);
             rsbac_debug_aef_net = debug_level;
             err = count;
@@ -3370,8 +3449,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_adf_net to %u\n",
+            if (rsbac_debug_adf_net != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_adf_net to %u\n",
                    debug_level);
             rsbac_debug_adf_net = debug_level;
             err = count;
@@ -3401,8 +3481,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_ds_mac to %u\n",
+            if (rsbac_debug_ds_mac != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_ds_mac to %u\n",
                    debug_level);
             rsbac_debug_ds_mac = debug_level;
             err = count;
@@ -3429,8 +3510,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_aef_mac to %u\n",
+            if (rsbac_debug_aef_mac != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_aef_mac to %u\n",
                    debug_level);
             rsbac_debug_aef_mac = debug_level;
             err = count;
@@ -3458,8 +3540,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_adf_mac to %u\n",
+            if (rsbac_debug_adf_mac != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_adf_mac to %u\n",
                    debug_level);
             rsbac_debug_adf_mac = debug_level;
             err = count;
@@ -3489,8 +3572,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_ds_rc to %u\n",
+            if (rsbac_debug_ds_rc != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_ds_rc to %u\n",
                    debug_level);
             rsbac_debug_ds_rc = debug_level;
             err = count;
@@ -3517,8 +3601,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_aef_rc to %u\n",
+            if (rsbac_debug_aef_rc != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_aef_rc to %u\n",
                    debug_level);
             rsbac_debug_aef_rc = debug_level;
             err = count;
@@ -3583,8 +3668,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_ds_auth to %u\n",
+            if (rsbac_debug_ds_auth != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_ds_auth to %u\n",
                    debug_level);
             rsbac_debug_ds_auth = debug_level;
             err = count;
@@ -3611,8 +3697,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_aef_auth to %u\n",
+            if (rsbac_debug_aef_auth != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_aef_auth to %u\n",
                    debug_level);
             rsbac_debug_aef_auth = debug_level;
             err = count;
@@ -3640,8 +3727,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_adf_auth to %u\n",
+            if (rsbac_debug_adf_auth != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_adf_auth to %u\n",
                    debug_level);
             rsbac_debug_adf_auth = debug_level;
             err = count;
@@ -3672,8 +3760,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_reg to %u\n",
+            if (rsbac_debug_reg != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_reg to %u\n",
                    debug_level);
             rsbac_debug_reg = debug_level;
             err = count;
@@ -3703,8 +3792,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_ds_acl to %u\n",
+            if (rsbac_debug_ds_acl != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_ds_acl to %u\n",
                    debug_level);
             rsbac_debug_ds_acl = debug_level;
             err = count;
@@ -3731,8 +3821,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_aef_acl to %u\n",
+            if (rsbac_debug_aef_acl != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_aef_acl to %u\n",
                    debug_level);
             rsbac_debug_aef_acl = debug_level;
             err = count;
@@ -3760,8 +3851,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_adf_acl to %u\n",
+            if (rsbac_debug_adf_acl != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_adf_acl to %u\n",
                    debug_level);
             rsbac_debug_adf_acl = debug_level;
             err = count;
@@ -3791,8 +3883,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_aef_jail to %u\n",
+            if (rsbac_debug_aef_jail != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_aef_jail to %u\n",
                    debug_level);
             rsbac_debug_aef_jail = debug_level;
             err = count;
@@ -3820,8 +3913,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_adf_jail to %u\n",
+            if (rsbac_debug_adf_jail != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_adf_jail to %u\n",
                    debug_level);
             rsbac_debug_adf_jail = debug_level;
             err = count;
@@ -3888,8 +3982,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_adf_udf to %u\n",
+            if (rsbac_debug_adf_udf != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_adf_udf to %u\n",
                    debug_level);
             rsbac_debug_adf_udf = debug_level;
             err = count;
@@ -3919,8 +4014,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_ds_um to %u\n",
+            if (rsbac_debug_ds_um != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_ds_um to %u\n",
                    debug_level);
             rsbac_debug_ds_um = debug_level;
             err = count;
@@ -3947,8 +4043,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_aef_um to %u\n",
+            if (rsbac_debug_aef_um != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_aef_um to %u\n",
                    debug_level);
             rsbac_debug_aef_um = debug_level;
             err = count;
@@ -3976,8 +4073,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_adf_um to %u\n",
+            if (rsbac_debug_adf_um != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_adf_um to %u\n",
                    debug_level);
             rsbac_debug_adf_um = debug_level;
             err = count;
@@ -4005,8 +4103,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_ds to %u\n",
+            if (rsbac_debug_ds != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_ds to %u\n",
                    debug_level);
             rsbac_debug_ds = debug_level;
             err = count;
@@ -4033,8 +4132,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_write to %u\n",
+            if (rsbac_debug_write != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_write to %u\n",
                    debug_level);
             rsbac_debug_write = debug_level;
             err = count;
@@ -4061,7 +4161,8 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
+            if (rsbac_debug_memfd != debug_level)
+              rsbac_printk(KERN_INFO
                    "debug_proc_memfd(): setting rsbac_debug_memfd to %u\n",
                    debug_level);
             rsbac_debug_memfd = debug_level;
@@ -4089,8 +4190,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_stack to %u\n",
+            if (rsbac_debug_stack != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_stack to %u\n",
                    debug_level);
             rsbac_debug_stack = debug_level;
             err = count;
@@ -4118,8 +4220,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_mprotect to %u\n",
+            if (rsbac_debug_mprotect != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_mprotect to %u\n",
                    debug_level);
             rsbac_debug_mprotect = debug_level;
             err = count;
@@ -4147,8 +4250,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_lists to %u\n",
+            if (rsbac_debug_lists != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_lists to %u\n",
                    debug_level);
             rsbac_debug_lists = debug_level;
             err = count;
@@ -4176,8 +4280,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_aef to %u\n",
+            if (rsbac_debug_aef != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_aef to %u\n",
                    debug_level);
             rsbac_debug_aef = debug_level;
             err = count;
@@ -4205,8 +4310,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_no_write to %u\n",
+            if (rsbac_debug_no_write != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_no_write to %u\n",
                    debug_level);
             rsbac_debug_no_write = debug_level;
             err = count;
@@ -4234,8 +4340,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0 or 1 */
         if(!debug_level || (debug_level == 1))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_auto to %u\n",
+            if (rsbac_debug_auto != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_auto to %u\n",
                    debug_level);
             rsbac_debug_auto = debug_level;
             err = count;
@@ -4264,8 +4371,9 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
         /* only accept 0, 1 or 2 */
         if(!debug_level || (debug_level == 1) || (debug_level == 2))
           {
-            rsbac_printk(KERN_INFO
-                   "debug_proc_write(): setting rsbac_debug_fdcache to %u\n",
+            if (rsbac_debug_fdcache != debug_level)
+              rsbac_printk(KERN_INFO
+                   "debug_proc_write(): changing rsbac_debug_fdcache to %u\n",
                    debug_level);
             rsbac_debug_fdcache = debug_level;
             err = count;
@@ -4715,6 +4823,8 @@ inline void __init rsbac_init_debug(void)
       rsbac_printk(KERN_DEBUG "rsbac_list_recover is set\n");
     if(rsbac_list_noread)
       rsbac_printk(KERN_DEBUG "rsbac_list_noread is set\n");
+    if(rsbac_memfd_keep)
+      rsbac_printk(KERN_DEBUG "rsbac_memfd_keep is set\n");
     #if defined(CONFIG_RSBAC_UM_EXCL)
     if(rsbac_um_no_excl)
       rsbac_printk(KERN_DEBUG "rsbac_um_no_excl is set\n");
