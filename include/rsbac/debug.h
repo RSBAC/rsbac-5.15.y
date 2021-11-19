@@ -3,7 +3,7 @@
 /* Author and (c) 1999-2021:     */
 /*   Amon Ott <ao@rsbac.org>     */
 /* debug definitions             */
-/* Last modified: 04/Oct/2021    */
+/* Last modified: 19/Nov/2021    */
 /******************************* */
 
 #ifndef __RSBAC_DEBUG_H
@@ -249,6 +249,8 @@ extern int rsbac_debug_adf_udf;
 #endif
 
 #endif /* DEBUG */
+
+extern int rsbac_memfd_keep;
 
 #if defined(CONFIG_RSBAC_UM_EXCL)
 extern int rsbac_um_no_excl;
