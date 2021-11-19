@@ -343,6 +343,7 @@ static char attribute_list[A_none + 1][23] = {
 	"perf_flags",
 	"memfd_name",
 	"rc_force_ipc_type",
+	"memfd_keep",
 	"none"
 };
 
