@@ -2773,18 +2773,18 @@ int fcntl_setlk64(unsigned int fd, struct file *filp, unsigned int cmd,
 	rsbac_pr_debug(aef, "[sys_fcntl()]: calling ADF\n");
 	rsbac_target = T_FILE;
 	rsbac_target_id.file.device = filp->f_path.dentry->d_sb->s_dev;
-	rsbac_target_id.file.inode  = inode->i_ino;
+	rsbac_target_id.file.inode  = filp->f_path.dentry->d_inode->i_ino;
 	rsbac_target_id.file.dentry_p = filp->f_path.dentry;
-	if (S_ISDIR(inode->i_mode))
+	if (S_ISDIR(filp->f_path.dentry->d_inode->i_mode))
 		rsbac_target = T_DIR;
-	else if (S_ISFIFO(inode->i_mode))
+	else if (S_ISFIFO(filp->f_path.dentry->d_inode->i_mode))
 		rsbac_target = T_FIFO;
-	else if (S_ISLNK(inode->i_mode))
+	else if (S_ISLNK(filp->f_path.dentry->d_inode->i_mode))
 		rsbac_target = T_SYMLINK;
-	else if (inode->i_rsbac_memfd) {
+	else if (filp->f_path.dentry->d_inode->i_rsbac_memfd) {
 		rsbac_target = T_IPC;
 		rsbac_target_id.ipc.type = I_memfd;
-		rsbac_target_id.ipc.id.id_nr = inode->i_ino;
+		rsbac_target_id.ipc.id.id_nr = filp->f_path.dentry->d_inode->i_ino;
 	}
 	else if (S_ISSOCK(filp->f_path.dentry->d_inode->i_mode)) {
 		if(filp->f_path.dentry->d_sb->s_magic == SOCKFS_MAGIC) {
