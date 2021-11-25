@@ -63,7 +63,7 @@ long vfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	if (filp->f_path.dentry->d_inode->i_rsbac_memfd) {
 		rsbac_target = T_IPC;
 		rsbac_target_id.ipc.type = I_memfd;
-		rsbac_target_id.ipc.id.id_nr = filp->f_path.dentry->d_inode->i_ino;
+		rsbac_target_id.ipc.id.id_nr = (u_long) filp->f_path.dentry->d_inode;
 	}
 	else if (S_ISBLK(filp->f_path.dentry->d_inode->i_mode)) {
 		rsbac_target = T_DEV;
