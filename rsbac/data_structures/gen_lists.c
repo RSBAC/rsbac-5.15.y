@@ -1,9 +1,9 @@
 /************************************* */
 /* Rule Set Based Access Control       */
-/* Author and (c) 1999-2020:           */
+/* Author and (c) 1999-2021:           */
 /*   Amon Ott <ao@rsbac.org>           */
 /* Generic lists for all parts         */
-/* Last modified: 29/Dec/2020          */
+/* Last modified: 25/Nov/2021          */
 /************************************* */
 
 #include <linux/sched.h>
@@ -12445,7 +12445,9 @@ EXPORT_SYMBOL(rsbac_list_hash_ipc);
 #endif
 u_int rsbac_list_hash_ipc(void * desc, __u8 hash_bits)
 {
-	return hash_bits ? hash_long(((struct rsbac_ipc_t *) desc)->id.id_nr, rsbac_min(hash_bits, 32)) : 0;
+	if (!hash_bits)
+		return 0;
+	return hash_long(((struct rsbac_ipc_t *) desc)->id.id_nr, rsbac_min(hash_bits, 32));
 }
 
 #if defined(CONFIG_RSBAC_REG) || defined(CONFIG_RSBAC_REG_MAINT)
