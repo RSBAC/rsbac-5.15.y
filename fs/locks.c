@@ -2233,7 +2233,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
 	else if (f.file->f_path.dentry->d_inode->i_rsbac_memfd) {
 		rsbac_target = T_IPC;
 		rsbac_target_id.ipc.type = I_memfd;
-		rsbac_target_id.ipc.id.id_nr = f.file->f_path.dentry->d_inode->i_ino;
+		rsbac_target_id.ipc.id.id_nr = (u_long) f.file->f_path.dentry->d_inode;
 	}
 	else if (S_ISSOCK(f.file->f_path.dentry->d_inode->i_mode)) {
 		if(f.file->f_path.dentry->d_sb->s_magic == SOCKFS_MAGIC) {
@@ -2587,7 +2587,7 @@ int fcntl_setlk(unsigned int fd, struct file *filp, unsigned int cmd,
 	else if (inode->i_rsbac_memfd) {
 		rsbac_target = T_IPC;
 		rsbac_target_id.ipc.type = I_memfd;
-		rsbac_target_id.ipc.id.id_nr = inode->i_ino;
+		rsbac_target_id.ipc.id.id_nr = (u_long) inode;
 	}
 	else if (S_ISSOCK(filp->f_path.dentry->d_inode->i_mode)) {
 		if(filp->f_path.dentry->d_sb->s_magic == SOCKFS_MAGIC) {
@@ -2784,7 +2784,7 @@ int fcntl_setlk64(unsigned int fd, struct file *filp, unsigned int cmd,
 	else if (filp->f_path.dentry->d_inode->i_rsbac_memfd) {
 		rsbac_target = T_IPC;
 		rsbac_target_id.ipc.type = I_memfd;
-		rsbac_target_id.ipc.id.id_nr = filp->f_path.dentry->d_inode->i_ino;
+		rsbac_target_id.ipc.id.id_nr = (u_long) filp->f_path.dentry->d_inode;
 	}
 	else if (S_ISSOCK(filp->f_path.dentry->d_inode->i_mode)) {
 		if(filp->f_path.dentry->d_sb->s_magic == SOCKFS_MAGIC) {
