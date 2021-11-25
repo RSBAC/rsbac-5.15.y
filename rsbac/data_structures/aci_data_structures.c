@@ -4513,9 +4513,7 @@ jails_proc_show(struct seq_file *m, void *v)
 			    (ipc_handles.jail, &ipc_array[i], &data)) {
 				seq_printf(m,
 					    "%-10s  %-10lu %-10u\n",
-					    get_ipc_target_name(tmp,
-								ipc_array
-								[i].type),
+					    get_ipc_target_name(tmp, ipc_array[i].type),
 					    ipc_array[i].id.id_nr, data);
 			}
 		}

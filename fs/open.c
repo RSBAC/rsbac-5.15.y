@@ -361,7 +361,7 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 	if (inode->i_rsbac_memfd) {
 		rsbac_target = T_IPC;
 		rsbac_target_id.ipc.type = I_memfd;
-		rsbac_target_id.ipc.id.id_nr = inode->i_ino;
+		rsbac_target_id.ipc.id.id_nr = (u_long) inode;
 	} else {
 		rsbac_target = T_FILE;
 		rsbac_target_id.file.device = inode->i_sb->s_dev;
@@ -787,7 +787,7 @@ retry_deleg:
 		else if (inode->i_rsbac_memfd) {
 			rsbac_target = T_IPC;
 			rsbac_target_id.ipc.type = I_memfd;
-			rsbac_target_id.ipc.id.id_nr = inode->i_ino;
+			rsbac_target_id.ipc.id.id_nr = (u_long) inode;
 		}
 		else if (S_ISSOCK(inode->i_mode)) {
 			if(inode->i_sb->s_magic == SOCKFS_MAGIC) {
@@ -1653,7 +1653,7 @@ int filp_close(struct file *filp, fl_owner_t id)
 		else if (filp->f_path.dentry->d_inode->i_rsbac_memfd) {
 			rsbac_target = T_IPC;
 			rsbac_target_id.ipc.type = I_memfd;
-			rsbac_target_id.ipc.id.id_nr = filp->f_path.dentry->d_inode->i_ino;
+			rsbac_target_id.ipc.id.id_nr = (u_long) filp->f_path.dentry->d_inode;
 		}
 		else if (S_ISSOCK(filp->f_path.dentry->d_inode->i_mode)) {
 			if (filp->f_path.dentry->d_sb->s_magic == SOCKFS_MAGIC) {
