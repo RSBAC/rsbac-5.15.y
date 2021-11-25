@@ -4,7 +4,7 @@
 /*   Amon Ott <ao@rsbac.org>         */
 /* API: Data types for attributes    */
 /*      and standard module calls    */
-/* Last modified: 19/Nov/2021        */
+/* Last modified: 25/Nov/2021        */
 /*********************************** */
 
 #ifndef __RSBAC_TYPES_H
