@@ -1775,7 +1775,7 @@ static void iput_final(struct inode *inode)
 		if (!rsbac_memfd_keep) {
 			union rsbac_target_id_t rsbac_target_id;
 
-			rsbac_pr_debug(memfd, "remove_target() for memfd %u\n", inode->i_ino);
+			rsbac_pr_debug(memfd, "remove_target() for memfd %lu\n", (u_long) inode);
 			rsbac_target_id.ipc.type = I_memfd;
 			rsbac_target_id.ipc.id.id_nr = (u_long) inode;
 			rsbac_remove_target(T_IPC, &rsbac_target_id);
