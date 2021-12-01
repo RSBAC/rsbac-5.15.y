@@ -6,7 +6,7 @@
 /*                                                   */
 /* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 09/Nov/2021                        */
+/* Last modified: 01/Dec/2021                        */
 /*************************************************** */
 
 #include <linux/string.h>
@@ -244,6 +244,7 @@ rsbac_adf_request_check(enum rsbac_adf_request_t request,
 		switch (target) {
 		case T_FILE:
 		case T_FIFO:
+		case T_IPC:
 		case T_DEV:
                 case T_UNIXSOCK:
 			return DO_NOT_CARE;
@@ -725,7 +726,8 @@ int rsbac_adf_set_attr_check(enum rsbac_adf_request_t request,
 		switch (target) {
 		case T_FILE:
 		case T_FIFO:
-                case T_UNIXSOCK:
+		case T_UNIXSOCK:
+		case T_IPC:
 		case T_DEV:
 			return 0;
 			/* all other cases are undefined */
