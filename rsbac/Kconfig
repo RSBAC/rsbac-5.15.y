@@ -1536,6 +1536,21 @@ config RSBAC_UDF_TTL
 	  Use 0 for unlimited, default is 86400 (1 day). Set to 1 to force a
 	  fast recheck.
 
+config RSBAC_UDF_PROGRESS_TTL
+	int 'Checking in progress marker lifetime in seconds'
+	default 300
+	depends on RSBAC_UDF_CACHE
+	help
+	  Specify the time in seconds checking of a file is marked as
+	  in progress. During this time, other checks for the same file
+	  will wait for the result of the first to avoid multiple calls
+	  of the user space checker for this file. This timeout is meant
+	  to avoid unlimited waiting for a hanging use space process.
+	  Please note that huge archives might take a malware scanner
+	  several minutes to scan.
+
+	  Use 0 for unlimited, default is 300 (5 minutes).
+
 config RSBAC_UDF_PERSIST
 	bool 'Keep checking results over reboot'
 	depends on RSBAC_UDF_CACHE
