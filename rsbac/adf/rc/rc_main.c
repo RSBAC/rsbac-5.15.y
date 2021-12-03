@@ -6,7 +6,7 @@
 /*                                                   */
 /* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 21/Sep/2021                        */
+/* Last modified: 03/Dec/2021                        */
 /*************************************************** */
 
 #include <linux/string.h>
@@ -1941,12 +1941,43 @@ rsbac_adf_request_rc(enum rsbac_adf_request_t request,
 #ifdef CONFIG_RSBAC_RC_UDF_PROT
 		case A_udf_role:
 		case A_udf_checker:
-		case A_udf_checked:
 		case A_udf_do_check:
 			/* may manipulate udf attributes, if general...  */
-			result =
-			    check_comp_rc_scd(RST_udf_administration,
-					      request, caller_pid);
+			result = check_comp_rc_scd(RST_udf_administration,
+						request, caller_pid);
+			if (   (result == GRANTED)
+			    || (result == DO_NOT_CARE)
+#ifdef CONFIG_RSBAC_RC_FORCE_LOG
+			    || (result == GRANTED_NEVER_LOG)
+			    || (result == GRANTED_ALWAYS_LOG)
+#endif
+			   ) {
+				/* ...and for this target */
+				result =
+				    check_comp_rc(target, tid,
+						  RCR_MODIFY_UDF,
+						  caller_pid);
+				if (   (result == GRANTED)
+				    || (result == DO_NOT_CARE)
+#ifdef CONFIG_RSBAC_RC_FORCE_LOG
+				    || (result == GRANTED_NEVER_LOG)
+				    || (result == GRANTED_ALWAYS_LOG)
+#endif
+				   )
+					return result;
+			}
+			/* Last chance: classical admin_type check */
+			if ((err = rsbac_rc_test_role_admin(TRUE)))
+				return NOT_GRANTED;
+			else
+				return GRANTED;
+
+		case A_udf_checked:
+			if (attr_val.udf_checked == UDF_in_progress)
+				return NOT_GRANTED;
+			/* may manipulate udf attributes, if general...  */
+			result = check_comp_rc_scd(RST_udf_administration,
+						request, caller_pid);
 			if (   (result == GRANTED)
 			    || (result == DO_NOT_CARE)
 #ifdef CONFIG_RSBAC_RC_FORCE_LOG
