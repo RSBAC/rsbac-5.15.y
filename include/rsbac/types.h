@@ -4,7 +4,7 @@
 /*   Amon Ott <ao@rsbac.org>         */
 /* API: Data types for attributes    */
 /*      and standard module calls    */
-/* Last modified: 25/Nov/2021        */
+/* Last modified: 03/Dec/2021        */
 /*********************************** */
 
 #ifndef __RSBAC_TYPES_H
@@ -483,7 +483,7 @@ typedef __u8 rsbac_udf_checked_t;
 #define UDF_unchecked 0
 #define UDF_denied 1
 #define UDF_allowed 2
-#define UDF_max 2
+#define UDF_in_progress 3
 #define DEFAULT_UDF_FD_CHECKED UDF_unchecked
 typedef __u8 rsbac_udf_checker_t;
 typedef __u8 rsbac_udf_do_check_t;
@@ -491,7 +491,6 @@ typedef __u8 rsbac_udf_do_check_t;
 #define UDF_always 1
 #define UDF_inherit 2
 #define UDF_remoteonly 3
-#define UDF_max_do_check 3
 #define DEFAULT_UDF_FD_DO_CHECK UDF_inherit
 #define DEFAULT_UDF_FD_ROOT_DO_CHECK UDF_never
 #define RSBAC_UDF_PATH_MAX 4096
