@@ -4,9 +4,9 @@
 /* Facility (ADF) - User Space Decision Facility     */
 /* File: rsbac/adf/udf/udf_main.c                    */
 /*                                                   */
-/* Author and (c) 1999-2020: Amon Ott <ao@rsbac.org> */
+/* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 29/Dec/2020                        */
+/* Last modified: 03/Dec/2021                        */
 /*************************************************** */
 
 #include <linux/init.h>
@@ -16,10 +16,13 @@
 #include <linux/version.h>
 #include <linux/syscalls.h>
 #include <linux/kmod.h>
+#include <linux/delay.h>
 #include <asm/uaccess.h>
 #include <rsbac/types.h>
 #include <rsbac/aci.h>
 #include <rsbac/adf.h>
+#include <rsbac/lists.h>
+#include <rsbac/udf.h>
 #include <rsbac/adf_main.h>
 #include <rsbac/debug.h>
 #include <rsbac/error.h>
@@ -53,6 +56,11 @@ static int R_INIT udf_checker_wait_setup(char *line)
   }
 __setup("rsbac_udf_nokill", udf_checker_wait_setup);
 
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+static rsbac_time_t rsbac_udf_ttl = CONFIG_RSBAC_UDF_TTL;
+static rsbac_time_t rsbac_udf_progress_ttl = CONFIG_RSBAC_UDF_PROGRESS_TTL;
+#endif
+
 /************************************************* */
 /*          Internal Help functions                */
 /************************************************* */
@@ -61,6 +69,52 @@ __setup("rsbac_udf_nokill", udf_checker_wait_setup);
 #ifndef PROC_BLOCK_SIZE
 #define PROC_BLOCK_SIZE	(3*1024)  /* 4K page size but our output routines use some slack for overruns */
 #endif
+
+EXPORT_SYMBOL(rsbac_udf_get_ttl);
+/* Get ttl for new cache items in seconds */
+rsbac_time_t rsbac_udf_get_ttl(void)
+{
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+	return rsbac_udf_ttl;
+#else
+	return 0;
+#endif
+}
+
+EXPORT_SYMBOL(rsbac_udf_set_ttl);
+void rsbac_udf_set_ttl(rsbac_time_t ttl)
+{
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+	if (ttl) {
+		if (ttl > RSBAC_LIST_MAX_AGE_LIMIT)
+			ttl = RSBAC_LIST_MAX_AGE_LIMIT;
+		rsbac_udf_ttl = ttl;
+	}
+#endif
+}
+
+EXPORT_SYMBOL(rsbac_udf_get_progress_ttl);
+/* Get ttl for in-progress marker in seconds */
+rsbac_time_t rsbac_udf_get_progress_ttl(void)
+{
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+	return rsbac_udf_progress_ttl;
+#else
+	return 0;
+#endif
+}
+
+EXPORT_SYMBOL(rsbac_udf_set_progress_ttl);
+void rsbac_udf_set_progress_ttl(rsbac_time_t ttl)
+{
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+	if (ttl) {
+		if (ttl > RSBAC_LIST_MAX_AGE_LIMIT)
+			ttl = RSBAC_LIST_MAX_AGE_LIMIT;
+		rsbac_udf_progress_ttl = ttl;
+	}
+#endif
+}
 
 static int
 udf_checker_proc_show(struct seq_file *m, void *v)
@@ -265,11 +319,14 @@ enum rsbac_adf_req_ret_t udf_do_check(union rsbac_target_id_t tid)
 	char * progname;
 	int err;
 	u_int result;
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+	union rsbac_attribute_value_t i_attr_val1;
+#endif
 
 	progname = rsbac_kmalloc_unlocked(RSBAC_UDF_PATH_MAX);
 	if (!progname) {
 		rsbac_printk(KERN_WARNING
-			"udf_do_check(): cannot allocate memory!\n");
+			"%s(): cannot allocate memory!\n", __FUNCTION__);
 		return NOT_GRANTED;
 	}
 
@@ -279,12 +336,32 @@ enum rsbac_adf_req_ret_t udf_do_check(union rsbac_target_id_t tid)
 
 		if (tmp) {
 			rsbac_printk(KERN_WARNING
-				"udf_do_check(): rsbac_lookup_full_path() returned error %s!\n", get_error_name(tmp, err));
+				"%s(): rsbac_lookup_full_path() returned error %s!\n", __FUNCTION__, get_error_name(tmp, err));
 			rsbac_kfree(tmp);
 		}
 		return NOT_GRANTED;
 	}
-	rsbac_pr_debug(adf_udf, "udf_do_check(): calling %s for path %s.\n", udf_checker_prog, progname);
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+	/* Other check in progress? This is no dead loop, because
+	 * udf_checked == UDF_in_progress always has a ttl
+	 */
+	while (   !rsbac_get_attr(SW_UDF, T_FILE, tid, A_udf_checked, &i_attr_val1, FALSE)
+	       && i_attr_val1.udf_checked == UDF_in_progress) {
+		rsbac_pr_debug(adf_udf, "check for path %s is in progress, wait 500ms", progname);
+		msleep_interruptible(500);
+	}
+
+	i_attr_val1.udf_checked = UDF_in_progress;
+	if (rsbac_ta_set_attr_ttl(0,
+			SW_UDF,
+			T_FILE,
+			tid,
+			A_udf_checked,
+			i_attr_val1,
+			rsbac_udf_progress_ttl))
+			rsbac_printk(KERN_WARNING "%s():%u: rsbac_ta_set_attr_ttl() returned error!\n",__FUNCTION__,  __LINE__);
+#endif
+	rsbac_pr_debug(adf_udf, "calling %s for path %s.", udf_checker_prog, progname);
 
 	argv[1] = progname;
 	err = call_usermodehelper(argv[0], argv, envp, udf_checker_wait);
@@ -293,21 +370,29 @@ enum rsbac_adf_req_ret_t udf_do_check(union rsbac_target_id_t tid)
 
 	if (err < 0) {
 		if (err != -ERESTARTSYS)
-			rsbac_printk(KERN_WARNING "udf_do_check(): call_usermodehelper() could not execute %s, error %i.\n", udf_checker_prog, err);
+			rsbac_printk(KERN_WARNING "%s(): call_usermodehelper() could not execute %s, error %i.\n", __FUNCTION__, udf_checker_prog, err);
 #if defined(CONFIG_RSBAC_DEBUG)
 		else
-			rsbac_pr_debug(adf_udf, "udf_do_check(): call_usermodehelper() returned -ERESTARTSYS, checker was interrupted.\n");
+			rsbac_pr_debug(adf_udf, "call_usermodehelper() returned -ERESTARTSYS, checker was interrupted.\n");
+#endif
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+		i_attr_val1.udf_checked = UDF_unchecked;
+		if (rsbac_ta_set_attr_ttl(0,
+				SW_UDF,
+				T_FILE,
+				tid,
+				A_udf_checked,
+				i_attr_val1,
+				rsbac_udf_ttl))
+			rsbac_printk(KERN_WARNING "%s():%u: rsbac_set_attr() returned error!\n", __FUNCTION__, __LINE__);
 #endif
 	}
 #if defined(CONFIG_RSBAC_DEBUG) || defined(CONFIG_RSBAC_UDF_CACHE)
 	else {
 		u_int signal;
-#if defined(CONFIG_RSBAC_UDF_CACHE)
-		union rsbac_attribute_value_t i_attr_val1;
-#endif
 
 		signal = err & 255;
-		rsbac_pr_debug(adf_udf, "udf_do_check(): call_usermodehelper() returned %u (result %u, signal %u).\n", err, result, signal);
+		rsbac_pr_debug(adf_udf, "call_usermodehelper() returned %u (result %u, signal %u).\n", err, result, signal);
 #if defined(CONFIG_RSBAC_UDF_CACHE)
 		/* only cache, if not killed by signal and no temp fail */
 		if (   !signal
@@ -318,12 +403,25 @@ enum rsbac_adf_req_ret_t udf_do_check(union rsbac_target_id_t tid)
 				i_attr_val1.udf_checked = UDF_allowed;
 			else
 				i_attr_val1.udf_checked = UDF_denied;
-			if (rsbac_set_attr(SW_UDF,
-				T_FILE,
-				tid,
-				A_udf_checked,
-				i_attr_val1))
-				rsbac_printk(KERN_WARNING "udf_do_check(): rsbac_set_attr() returned error!\n");
+			if (rsbac_ta_set_attr_ttl(0,
+					SW_UDF,
+					T_FILE,
+					tid,
+					A_udf_checked,
+					i_attr_val1,
+					rsbac_udf_ttl))
+				rsbac_printk(KERN_WARNING "%s():%u: rsbac_ta_set_attr_ttl() returned error!\n",__FUNCTION__,  __LINE__);
+		} else {
+			/* reset to unchecked, because current value is in_progress */
+			i_attr_val1.udf_checked = UDF_unchecked;
+			if (rsbac_ta_set_attr_ttl(0,
+					SW_UDF,
+					T_FILE,
+					tid,
+					A_udf_checked,
+					i_attr_val1,
+					rsbac_udf_ttl))
+				rsbac_printk(KERN_WARNING "%s():%u: rsbac_set_attr() returned error!\n", __FUNCTION__, __LINE__);
 		}
 #endif
 	}
