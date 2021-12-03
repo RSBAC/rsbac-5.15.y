@@ -5,7 +5,7 @@
 /* API: Data structures          */
 /* and functions for Access      */
 /* Control Information           */
-/* Last modified: 27/Sep/2021    */
+/* Last modified: 03/Dec/2021    */
 /******************************* */
 
 #ifndef __RSBAC_ACI_H
@@ -131,13 +131,17 @@ int rsbac_ta_get_attr(
 #define rsbac_get_attr(module, target, tid, attr, value, inherit) \
   rsbac_ta_get_attr(0, module, target, tid, attr, value, inherit)
 
-int rsbac_ta_set_attr(
+int rsbac_ta_set_attr_ttl(
   rsbac_list_ta_number_t ta_number,
   enum rsbac_switch_target_t module,
   enum rsbac_target_t target,
   union rsbac_target_id_t tid,
   enum rsbac_attribute_t attr,
-  union rsbac_attribute_value_t value);
+  union rsbac_attribute_value_t value,
+  rsbac_time_t ttl);
+
+#define rsbac_ta_set_attr(ta_number, module, target, tid, attr, value) \
+  rsbac_ta_set_attr_ttl(ta_number, module, target, tid, attr, value, RSBAC_LIST_TTL_KEEP)
 
 #define rsbac_set_attr(module, target, tid, attr, value) \
   rsbac_ta_set_attr(0, module, target, tid, attr, value)
