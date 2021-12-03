@@ -266,11 +266,13 @@ static int udf_reset_checked(struct rsbac_fs_file_t file)
 				       current->pid, current->comm);
 	i_tid.file=file;
 	i_attr_val1.udf_checked = UDF_unchecked;
-	if(rsbac_set_attr(SW_UDF,
+	if(rsbac_ta_set_attr_ttl(0,
+				SW_UDF,
 				T_FILE,
 				i_tid,
 				A_udf_checked,
-				i_attr_val1))
+				i_attr_val1,
+				0))
 	{
 		rsbac_printk(KERN_WARNING "udf_reset_checked(): rsbac_set_attr() for udf_checked on device %02u:%02u inode %lu returned error!\n",
 			MAJOR(file.device), MINOR(file.device), file.inode);
@@ -341,26 +343,19 @@ enum rsbac_adf_req_ret_t udf_do_check(union rsbac_target_id_t tid)
 		}
 		return NOT_GRANTED;
 	}
-#if defined(CONFIG_RSBAC_UDF_CACHE)
-	/* Other check in progress? This is no dead loop, because
-	 * udf_checked == UDF_in_progress always has a ttl
-	 */
-	while (   !rsbac_get_attr(SW_UDF, T_FILE, tid, A_udf_checked, &i_attr_val1, FALSE)
-	       && i_attr_val1.udf_checked == UDF_in_progress) {
-		rsbac_pr_debug(adf_udf, "check for path %s is in progress, wait 500ms", progname);
-		msleep_interruptible(500);
-	}
 
-	i_attr_val1.udf_checked = UDF_in_progress;
-	if (rsbac_ta_set_attr_ttl(0,
-			SW_UDF,
-			T_FILE,
-			tid,
-			A_udf_checked,
-			i_attr_val1,
-			rsbac_udf_progress_ttl))
-			rsbac_printk(KERN_WARNING "%s():%u: rsbac_ta_set_attr_ttl() returned error!\n",__FUNCTION__,  __LINE__);
+#if defined(CONFIG_RSBAC_UDF_CACHE)
+       i_attr_val1.udf_checked = UDF_in_progress;
+       if (rsbac_ta_set_attr_ttl(0,
+				SW_UDF,
+				T_FILE,
+				tid,
+				A_udf_checked,
+				i_attr_val1,
+				rsbac_udf_progress_ttl))
+	rsbac_printk(KERN_WARNING "%s():%u: rsbac_ta_set_attr_ttl() returned error!\n",__FUNCTION__,  __LINE__);
 #endif
+
 	rsbac_pr_debug(adf_udf, "calling %s for path %s.", udf_checker_prog, progname);
 
 	argv[1] = progname;
@@ -383,7 +378,7 @@ enum rsbac_adf_req_ret_t udf_do_check(union rsbac_target_id_t tid)
 				tid,
 				A_udf_checked,
 				i_attr_val1,
-				rsbac_udf_ttl))
+				0))
 			rsbac_printk(KERN_WARNING "%s():%u: rsbac_set_attr() returned error!\n", __FUNCTION__, __LINE__);
 #endif
 	}
@@ -420,7 +415,7 @@ enum rsbac_adf_req_ret_t udf_do_check(union rsbac_target_id_t tid)
 					tid,
 					A_udf_checked,
 					i_attr_val1,
-					rsbac_udf_ttl))
+					0))
 				rsbac_printk(KERN_WARNING "%s():%u: rsbac_set_attr() returned error!\n", __FUNCTION__, __LINE__);
 		}
 #endif
@@ -693,15 +688,28 @@ rsbac_adf_request_udf (enum  rsbac_adf_request_t     request,
 	}
 
 #if defined(CONFIG_RSBAC_UDF_CACHE)
-	if (rsbac_get_attr(SW_UDF,
+	/* Other check in progress? This is no dead loop, because
+	 * udf_checked == UDF_in_progress always has a ttl
+	 */
+	while (1) {
+		if (rsbac_get_attr(SW_UDF,
 				target,
 				tid,
 				A_udf_checked,
 				&i_attr_val1,
 				FALSE)) {
-		rsbac_printk(KERN_WARNING
-				"rsbac_adf_request_udf(): rsbac_get_attr() returned error!\n");
-		return NOT_GRANTED;
+			rsbac_printk(KERN_WARNING
+					"rsbac_adf_request_udf(): rsbac_get_attr() returned error!\n");
+			return NOT_GRANTED;
+		}
+		if (i_attr_val1.udf_checked != UDF_in_progress)
+			break;
+		rsbac_pr_debug(adf_udf, "pid %u(%s): check for device %02u:%02u inode %lu is in progress, wait 500ms",
+					current->pid, current->comm,
+					RSBAC_MAJOR(tid.file.device),
+					RSBAC_MINOR(tid.file.device),
+					tid.file.inode);
+		msleep_interruptible(500);
 	}
 	if(i_attr_val1.udf_checked == UDF_allowed) {
 		rsbac_pr_debug(adf_udf, "pid %u(%s), result allowed for device %02u:%02u inode %lu taken from cache.\n",
@@ -870,22 +878,45 @@ inline int rsbac_adf_set_attr_udf(
 	}
 
 #if defined(CONFIG_RSBAC_UDF_CACHE)
-	/* get udf_checked for file */
-	if (rsbac_get_attr(SW_UDF,
+	/* Other check in progress? This is no dead loop, because
+	 * udf_checked == UDF_in_progress always has a ttl
+	 */
+	while (1) {
+		if (rsbac_get_attr(SW_UDF,
 				target,
 				tid,
 				A_udf_checked,
 				&i_attr_val1,
-				FALSE))
-	{
-		rsbac_printk(KERN_WARNING
-				"rsbac_adf_set_attr_udf(): rsbac_get_attr() returned error!\n");
-		return -RSBAC_EREADFAILED;
+				FALSE)) {
+			rsbac_printk(KERN_WARNING
+					"rsbac_adf_request_udf(): rsbac_get_attr() returned error!\n");
+			return -RSBAC_EREADFAILED;
+		}
+		if (i_attr_val1.udf_checked != UDF_in_progress)
+			break;
+		rsbac_pr_debug(adf_udf, "pid %u(%s): check for device %02u:%02u inode %lu is in progress, wait 500ms",
+					current->pid, current->comm,
+					RSBAC_MAJOR(tid.file.device),
+					RSBAC_MINOR(tid.file.device),
+					tid.file.inode);
+		msleep_interruptible(500);
 	}
-	if(i_attr_val1.udf_checked == UDF_allowed)
+	if(i_attr_val1.udf_checked == UDF_allowed) {
+		rsbac_pr_debug(adf_udf, "pid %u(%s), result allowed for device %02u:%02u inode %lu taken from cache.\n",
+				current->pid, current->comm,
+				RSBAC_MAJOR(tid.file.device),
+				RSBAC_MINOR(tid.file.device),
+				tid.file.inode);
 		return 0;
-	if(i_attr_val1.udf_checked == UDF_denied)
+	}
+	if(i_attr_val1.udf_checked == UDF_denied) {
+		rsbac_pr_debug(adf_udf, "pid %u(%s), result denied for device %02u:%02u inode %lu taken from cache.\n",
+				current->pid, current->comm,
+				RSBAC_MAJOR(tid.file.device),
+				RSBAC_MINOR(tid.file.device),
+				tid.file.inode);
 		return 0;
+	}
 #endif
 
 	rsbac_pr_debug(adf_udf, "pid %u(%s), checking required for device %02u:%02u inode %lu.\n",
