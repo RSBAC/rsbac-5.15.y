@@ -6,7 +6,7 @@
 /*                                           */
 /* Debug and logging functions for all parts */
 /*                                           */
-/* Last modified: 19/Nov/2021                */
+/* Last modified: 03/Dec/2021                */
 /******************************************* */
  
 #include <linux/uaccess.h>
@@ -350,16 +350,18 @@ __setup("rsbac_no_defaults", no_defaults_setup);
   __setup("rsbac_um_no_excl", um_no_excl_setup);
   #endif
   #if defined(CONFIG_RSBAC_UDF_CACHE)
-  /* RSBAC: UDF - set cache ttl */
-//    module_param(rsbac_udf_ttl,
-//                 int,
-//                 S_IRUGO);
   static int R_INIT udf_ttl_setup(char *line)
     {
       rsbac_udf_set_ttl(simple_strtoul(line, NULL, 0));
       return 1;
     }
   __setup("rsbac_udf_ttl=", udf_ttl_setup);
+  static int R_INIT udf_progress_ttl_setup(char *line)
+    {
+      rsbac_udf_set_progress_ttl(simple_strtoul(line, NULL, 0));
+      return 1;
+    }
+  __setup("rsbac_udf_progress_ttl=", udf_progress_ttl_setup);
   #endif
   #if defined(CONFIG_RSBAC_RC_LEARN)
   static int R_INIT rc_learn_setup(char *line)
@@ -1787,6 +1789,8 @@ debug_proc_show(struct seq_file *m, void *v)
   /* RSBAC: UDF - set cache ttl */
   seq_printf(m, "rsbac_udf_ttl is %u\n",
                  rsbac_udf_get_ttl());
+  seq_printf(m, "rsbac_udf_progress_ttl is %u\n",
+                 rsbac_udf_get_progress_ttl());
 #endif
 #ifdef CONFIG_RSBAC_CAP_PROC_HIDE
   seq_printf(m, "rsbac_cap_process_hiding is %i\n",
@@ -2483,6 +2487,59 @@ static ssize_t debug_proc_write(struct file * file, const char __user * buf, siz
                      "debug_proc_write(): setting rsbac_udf_ttl to %u\n",
                      tmp_ttl);
         rsbac_udf_set_ttl(tmp_ttl);
+        err = count;
+        goto out;
+      }
+
+/* Set UDF in-progress ttl */
+    /*
+     * Usage: echo "debug udf_progress_ttl #n" > /proc/rsbac_info/debug
+     *   to set udf progress ttl to given value
+     */
+    if(!strncmp("udf_progress_ttl", k_buf + 6, 16))
+      {
+        rsbac_time_t tmp_ttl;
+        union rsbac_target_id_t       i_tid;
+        union rsbac_attribute_value_t i_attr_val1;
+
+	p += 17;
+        if( *p == '\0' )
+          goto out;
+
+        tmp_ttl = simple_strtoul(p, NULL, 0);
+#if defined(CONFIG_RSBAC_DEBUG)
+            if (rsbac_debug_aef)
+              {
+                rsbac_printk(KERN_DEBUG "debug_proc_write(): calling ADF for udf_progress_ttl\n");
+              }
+#endif
+        /* Security Officer? */
+        i_tid.user = __kuid_val(current_uid());
+        if (rsbac_get_attr(SW_UDF,
+                           T_USER,
+                           i_tid,
+                           A_udf_role,
+                           &i_attr_val1,
+                           TRUE))
+          {
+            rsbac_printk(KERN_WARNING
+                         "debug_proc_write(): rsbac_get_attr() returned error!\n");
+            return -EPERM;
+          }
+        /* if not sec_officer or admin, deny */
+        if (i_attr_val1.system_role != SR_security_officer)
+          #ifdef CONFIG_RSBAC_SOFTMODE
+          if(   !rsbac_softmode
+          #ifdef CONFIG_RSBAC_SOFTMODE_IND
+             && !rsbac_ind_softmode[SW_UDF]
+          #endif
+            )
+          #endif
+          return -EPERM;
+        rsbac_printk(KERN_INFO
+                     "debug_proc_write(): setting rsbac_udf_progress_ttl to %u\n",
+                     tmp_ttl);
+        rsbac_udf_set_progress_ttl(tmp_ttl);
         err = count;
         goto out;
       }
@@ -4832,6 +4889,8 @@ inline void __init rsbac_init_debug(void)
     #if defined(CONFIG_RSBAC_UDF_CACHE)
     rsbac_printk(KERN_DEBUG "rsbac_udf_ttl is %u\n",
                  rsbac_udf_get_ttl());
+    rsbac_printk(KERN_DEBUG "rsbac_udf_progress_ttl is %u\n",
+                 rsbac_udf_get_progress_ttl());
     #endif
     #if defined(CONFIG_RSBAC_RC_LEARN)
     if(rsbac_rc_learn)
