@@ -4,9 +4,9 @@
 /* Facility (ADF) - Access Control Lists (ACL)        */
 /* File: rsbac/adf/acl/acl_main.c                     */
 /*                                                    */
-/* Author and (c) 1999-2019: Amon Ott <ao@rsbac.org>  */
+/* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org>  */
 /*                                                    */
-/* Last modified: 03/Dec/2019                         */
+/* Last modified: 03/Dec/2021                         */
 /**************************************************** */
 
 #include <linux/string.h>
@@ -445,8 +445,16 @@ inline enum rsbac_adf_req_ret_t
                 #ifdef CONFIG_RSBAC_ACL_UDF_PROT
 		case A_udf_role:
 		case A_udf_checker:
-		case A_udf_checked:
 		case A_udf_do_check:
+                  tid.scd = AST_udf_administration;
+                  if (rsbac_acl_check_right(T_SCD, tid, owner, caller_pid, request))
+                    return GRANTED;
+                  else
+                    return NOT_GRANTED;
+
+		case A_udf_checked:
+		  if (attr_val.udf_checked == UDF_in_progress)
+                    return NOT_GRANTED;
                   tid.scd = AST_udf_administration;
                   if (rsbac_acl_check_right(T_SCD, tid, owner, caller_pid, request))
                     return GRANTED;
