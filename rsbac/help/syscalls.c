@@ -3,7 +3,7 @@
 /* Implementation of RSBAC general system calls      */
 /* Author and (C) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 09/Nov/2021                        */
+/* Last modified: 03/Dec/2021                        */
 /*************************************************** */
 
 #include <rsbac/types.h>
@@ -682,7 +682,7 @@ int sys_rsbac_set_attr(
         {
           return -EPERM;
         }
-      err = rsbac_ta_set_attr(ta_number, module, target, k_tid, attr, k_value);
+      err = rsbac_ta_set_attr_ttl(ta_number, module, target, k_tid, attr, k_value, attr == A_udf_checked ? 0 : RSBAC_LIST_TTL_KEEP);
       return err;
     }      /* end of sys_rsbac_set_attr() */
 
@@ -907,7 +907,7 @@ int sys_rsbac_set_attr_n(
         }
       else
         {
-          err = rsbac_ta_set_attr(ta_number, module, target, tid, attr, k_value);
+          err = rsbac_ta_set_attr_ttl(ta_number, module, target, tid, attr, k_value, attr == A_udf_checked ? 0 : RSBAC_LIST_TTL_KEEP);
         }
 
 out_dput:
