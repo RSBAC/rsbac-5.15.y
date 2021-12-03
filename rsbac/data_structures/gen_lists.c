@@ -3,7 +3,7 @@
 /* Author and (c) 1999-2021:           */
 /*   Amon Ott <ao@rsbac.org>           */
 /* Generic lists for all parts         */
-/* Last modified: 25/Nov/2021          */
+/* Last modified: 03/Dec/2021          */
 /************************************* */
 
 #include <linux/sched.h>
@@ -8015,7 +8015,7 @@ int rsbac_list_ta_commit(rsbac_list_ta_number_t ta_number, char *password)
 	spin_lock(&ta_lock);
 	while (ta_committing) {
 		spin_unlock(&ta_lock);
-		msleep(100);
+		msleep_interruptible(100);
 		spin_lock(&ta_lock);
 	}
 	rsbac_list_remove(ta_handle, &ta_number);
@@ -8051,7 +8051,7 @@ static int do_forget(rsbac_list_ta_number_t ta_number)
 	spin_lock(&ta_lock);
 	while (ta_committing) {
 		spin_unlock(&ta_lock);
-		msleep(100);
+		msleep_interruptible(100);
 		spin_lock(&ta_lock);
 	}
 	rsbac_list_remove(ta_handle, &ta_number);
@@ -8146,7 +8146,7 @@ int rsbac_list_ta_begin(rsbac_time_t ttl,
 		return -RSBAC_EINVALIDPOINTER;
 
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (*ta_number_p) {
 	 	if (rsbac_list_exist(ta_handle, ta_number_p))
 			return -RSBAC_EEXISTS;
@@ -8280,7 +8280,7 @@ int rsbac_ta_list_add_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -8431,7 +8431,7 @@ int rsbac_ta_list_lol_subadd_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -8653,7 +8653,7 @@ int rsbac_ta_list_lol_add_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -8804,7 +8804,7 @@ int rsbac_ta_list_remove(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -8885,7 +8885,7 @@ int rsbac_ta_list_remove_all(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9007,7 +9007,7 @@ int rsbac_ta_list_lol_subremove_count(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9158,7 +9158,7 @@ int rsbac_ta_list_lol_subremove(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9303,7 +9303,7 @@ int rsbac_ta_list_lol_subremove_from_all(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9421,7 +9421,7 @@ int rsbac_ta_list_lol_subremove_all(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9523,7 +9523,7 @@ int rsbac_ta_list_lol_remove(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9605,7 +9605,7 @@ int rsbac_ta_list_lol_remove_all(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9732,7 +9732,7 @@ int rsbac_ta_list_get_data_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9816,7 +9816,7 @@ int rsbac_ta_list_lol_get_max_subdesc(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9890,7 +9890,7 @@ int rsbac_ta_list_lol_get_subdata_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -9992,7 +9992,7 @@ int rsbac_ta_list_lol_get_data_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10074,7 +10074,7 @@ int rsbac_ta_list_get_max_desc(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10146,7 +10146,7 @@ int rsbac_ta_list_get_next_desc(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10236,7 +10236,7 @@ int rsbac_ta_list_get_next_desc_selector(
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10324,7 +10324,7 @@ int rsbac_ta_list_lol_get_next_desc(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10413,7 +10413,7 @@ int rsbac_ta_list_lol_get_next_desc_selector(
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10511,7 +10511,7 @@ int rsbac_ta_list_get_desc_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10582,7 +10582,7 @@ int rsbac_ta_list_get_desc_selector_ttl(
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10658,7 +10658,7 @@ int rsbac_ta_list_lol_get_desc_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10728,7 +10728,7 @@ int rsbac_ta_list_lol_get_desc_selector_ttl(
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10798,7 +10798,7 @@ int rsbac_ta_list_exist(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10858,7 +10858,7 @@ int rsbac_ta_list_lol_subexist(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10928,7 +10928,7 @@ int rsbac_ta_list_lol_subexist_compare(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -10993,7 +10993,7 @@ int rsbac_ta_list_lol_exist(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11052,7 +11052,7 @@ long rsbac_ta_list_lol_subcount(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11107,7 +11107,7 @@ long rsbac_ta_list_lol_all_subcount(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11157,7 +11157,7 @@ long rsbac_ta_list_lol_count(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11203,7 +11203,7 @@ long rsbac_ta_list_count(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11260,7 +11260,7 @@ long rsbac_ta_list_get_all_desc(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11356,7 +11356,7 @@ long rsbac_ta_list_get_all_desc_selector (
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11455,7 +11455,7 @@ long rsbac_ta_list_lol_get_all_subdesc_ttl(rsbac_list_ta_number_t
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11553,7 +11553,7 @@ long rsbac_ta_list_lol_get_all_desc(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11652,7 +11652,7 @@ long rsbac_ta_list_lol_get_all_desc_selector (
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11755,7 +11755,7 @@ long rsbac_ta_list_get_all_data(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11857,7 +11857,7 @@ long rsbac_ta_list_lol_get_all_subdata(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -11947,7 +11947,7 @@ long rsbac_ta_list_lol_get_all_data(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -12111,7 +12111,7 @@ long rsbac_ta_list_get_all_items_ttl(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -12225,7 +12225,7 @@ long rsbac_ta_list_lol_get_all_subitems_ttl(rsbac_list_ta_number_t
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
@@ -12324,7 +12324,7 @@ long rsbac_ta_list_lol_get_all_items(rsbac_list_ta_number_t ta_number,
 
 #ifdef CONFIG_RSBAC_LIST_TRANS
 	while(ta_committing)
-		msleep(100);
+		msleep_interruptible(100);
 	if (ta_number && !rsbac_ta_list_exist(0, ta_handle, &ta_number))
 		return -RSBAC_EINVALIDTRANSACTION;
 #endif
