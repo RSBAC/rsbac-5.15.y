@@ -4,9 +4,9 @@
 /* Facility (ADF) - File Flags                       */
 /* File: rsbac/adf/ff/main.c                         */
 /*                                                   */
-/* Author and (c) 1999-2019: Amon Ott <ao@rsbac.org> */
+/* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 03/Dec/2019                        */
+/* Last modified: 06/Dec/2021                        */
 /*************************************************** */
 
 #include <linux/types.h>
@@ -45,14 +45,14 @@ static enum rsbac_adf_req_ret_t
                        TRUE))
       {
         rsbac_printk(KERN_WARNING "check_flags_ff(): rsbac_get_attr() returned error!\n");
-        return(NOT_GRANTED);
+        return NOT_GRANTED;
       }
 
     /* Access is granted, if none of the flags in argument flags is set */
     if (i_attr_val1.ff_flags & flags)
-      return(NOT_GRANTED);
+      return NOT_GRANTED;
     else
-      return(GRANTED);
+      return GRANTED;
   }
 
 /************************************************* */
@@ -96,16 +96,16 @@ inline enum rsbac_adf_req_ret_t
                     {
                       rsbac_printk(KERN_WARNING
                              "rsbac_adf_request_ff(): rsbac_get_attr() returned error %i!\n",err);
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   if (   (i_attr_val1.system_role == SR_security_officer)
                       || (i_attr_val1.system_role == SR_auditor)
                      )
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
                 default:
-                  return(DO_NOT_CARE);
+                  return DO_NOT_CARE;
                }
 
 #if defined(CONFIG_RSBAC_FF_UM_PROT)
@@ -124,17 +124,17 @@ inline enum rsbac_adf_req_ret_t
                                      FALSE))
                     {
                       rsbac_ds_get_error("rsbac_adf_request_ff()", A_ff_role);
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* if sec_officer, then grant */
                   if (i_attr_val1.system_role == SR_security_officer)
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 
                 /* We do not care about */
                 /* all other cases */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 #endif
 
@@ -154,7 +154,7 @@ inline enum rsbac_adf_req_ret_t
 #endif
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_READ_OPEN:
@@ -170,7 +170,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_search_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_MAP_EXEC:
@@ -182,7 +182,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_write_only | FF_no_execute | FF_append_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_APPEND_OPEN:
@@ -195,7 +195,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_read_only | FF_execute_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_READ_WRITE_OPEN:
@@ -209,7 +209,7 @@ inline enum rsbac_adf_req_ret_t
                                          | FF_write_only | FF_append_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_CHDIR:
@@ -220,7 +220,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_search_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         /* Creating dir or (pseudo) file IN target dir! */
@@ -244,17 +244,17 @@ inline enum rsbac_adf_req_ret_t
                                      FALSE))
                     {
                       rsbac_ds_get_error("rsbac_adf_request_ff()", A_ff_role);
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* if sec_officer, then grant */
                   if (i_attr_val1.system_role == SR_security_officer)
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 #endif
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_DELETE:
@@ -285,17 +285,17 @@ inline enum rsbac_adf_req_ret_t
                                      FALSE))
                     {
                       rsbac_ds_get_error("rsbac_adf_request_ff()", A_ff_role);
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* if sec_officer, then grant */
                   if (i_attr_val1.system_role == SR_security_officer)
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 #endif
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_CHANGE_GROUP:
@@ -325,18 +325,18 @@ inline enum rsbac_adf_req_ret_t
                                      FALSE))
                     {
                       rsbac_ds_get_error("rsbac_adf_request_ff()", A_ff_role);
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* if sec_officer, then grant */
                   if (i_attr_val1.system_role == SR_security_officer)
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 #endif
 
                 /* all other cases are undefined */
                 default:
-                  return(DO_NOT_CARE);
+                  return DO_NOT_CARE;
               }
 
         case R_CHANGE_OWNER:
@@ -353,7 +353,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_read_only | FF_search_only));
                 /* all other cases are undefined */
                 default:
-                  return(DO_NOT_CARE);
+                  return DO_NOT_CARE;
               }
 
 	case R_SEARCH:
@@ -378,7 +378,7 @@ inline enum rsbac_adf_req_ret_t
 		  return(check_flags_ff(target,tid,
 					  FF_no_search));
 		default:
-		  return(DO_NOT_CARE);
+		  return DO_NOT_CARE;
 	    }
 
 	case R_LINK_HARD:
@@ -392,7 +392,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_read_only | FF_execute_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_MODIFY_ACCESS_DATA:
@@ -410,7 +410,7 @@ inline enum rsbac_adf_req_ret_t
 
                 /* all other cases are undefined */
                 default:
-                  return(DO_NOT_CARE);
+                  return DO_NOT_CARE;
               }
 
         case R_MODIFY_ATTRIBUTE:
@@ -460,16 +460,16 @@ inline enum rsbac_adf_req_ret_t
                     {
                       rsbac_printk(KERN_WARNING
                              "rsbac_adf_request_ff(): rsbac_get_attr() returned error!\n");
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* if sec_officer, then grant */
                   if (i_attr_val1.system_role == SR_security_officer)
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 
                 default:
-                  return(DO_NOT_CARE);
+                  return DO_NOT_CARE;
               }
 
         case R_MODIFY_SYSTEM_DATA:
@@ -496,18 +496,18 @@ inline enum rsbac_adf_req_ret_t
                     {
                       rsbac_printk(KERN_WARNING
                              "rsbac_adf_request_ff(): rsbac_get_attr() returned error!\n");
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* grant only for secoff */
                   if (   (i_attr_val1.system_role == SR_security_officer)
                       || (i_attr_val1.system_role == SR_auditor)
                      )
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_MOUNT:
@@ -523,7 +523,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_read_only | FF_search_only | FF_no_mount));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_SWITCH_LOG:
@@ -539,16 +539,16 @@ inline enum rsbac_adf_req_ret_t
                                      FALSE))
                     {
                       rsbac_printk(KERN_WARNING "rsbac_adf_request_ff(): rsbac_get_attr() returned error!\n");
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* security officer? -> grant  */
                   if (i_attr_val1.system_role == SR_security_officer)
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_SWITCH_MODULE:
@@ -573,7 +573,7 @@ inline enum rsbac_adf_req_ret_t
                      && (attr_val.switch_target != SW_AUTH)
                      #endif
                     )
-                    return(DO_NOT_CARE);
+                    return DO_NOT_CARE;
                   /* test owner's ff_role */
                   i_tid.user = owner;
                   if (rsbac_get_attr(SW_FF, T_USER,
@@ -583,16 +583,16 @@ inline enum rsbac_adf_req_ret_t
                                      FALSE))
                     {
                       rsbac_printk(KERN_WARNING "rsbac_adf_request_ff(): rsbac_get_attr() returned error!\n");
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* security officer? -> grant  */
                   if (i_attr_val1.system_role == SR_security_officer)
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_TRUNCATE:
@@ -604,7 +604,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_read_only | FF_execute_only | FF_append_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_WRITE_OPEN:
@@ -617,10 +617,11 @@ inline enum rsbac_adf_req_ret_t
                                         FF_read_only | FF_execute_only | FF_append_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_WRITE:
+        case R_TRACE:
             switch(target)
               {
                 case T_DIR:
@@ -647,17 +648,17 @@ inline enum rsbac_adf_req_ret_t
                                      FALSE))
                     {
                       rsbac_ds_get_error("rsbac_adf_request_ff()", A_ff_role);
-                      return(NOT_GRANTED);
+                      return NOT_GRANTED;
                     }
                   /* if sec_officer, then grant */
                   if (i_attr_val1.system_role == SR_security_officer)
-                    return(GRANTED);
+                    return GRANTED;
                   else
-                    return(NOT_GRANTED);
+                    return NOT_GRANTED;
 #endif
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
         case R_MOVETO:
@@ -668,7 +669,7 @@ inline enum rsbac_adf_req_ret_t
                                         FF_read_only | FF_search_only));
 
                 /* all other cases are undefined */
-                default: return(DO_NOT_CARE);
+                default: return DO_NOT_CARE;
               }
 
 
