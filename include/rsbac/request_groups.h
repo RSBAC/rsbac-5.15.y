@@ -3,7 +3,7 @@
 /* Author and (c) 1999-2021: Amon Ott */
 /* Groups of ADF request for          */
 /* administration                     */
-/* Last modified: 22/Sep/2021         */
+/* Last modified: 06/Dec/2021         */
 /************************************ */
 
 #ifndef __RSBAC_REQUEST_GROUPS_H
@@ -133,6 +133,7 @@
   ((rsbac_request_vector_t) 1 << R_REMOVE_FROM_KERNEL) | \
   ((rsbac_request_vector_t) 1 << R_RENAME) | \
   ((rsbac_request_vector_t) 1 << R_SEARCH) | \
+  ((rsbac_request_vector_t) 1 << R_TRACE) | \
   ((rsbac_request_vector_t) 1 << R_TRUNCATE) | \
   ((rsbac_request_vector_t) 1 << R_UMOUNT) | \
   ((rsbac_request_vector_t) 1 << R_WRITE) | \
@@ -164,6 +165,7 @@
   ((rsbac_request_vector_t) 1 << R_READ_OPEN) | \
   ((rsbac_request_vector_t) 1 << R_READ_WRITE_OPEN) | \
   ((rsbac_request_vector_t) 1 << R_REMOVE_FROM_KERNEL) | \
+  ((rsbac_request_vector_t) 1 << R_TRACE) | \
   ((rsbac_request_vector_t) 1 << R_UMOUNT) | \
   ((rsbac_request_vector_t) 1 << R_WRITE) | \
   ((rsbac_request_vector_t) 1 << R_WRITE_OPEN) | \
@@ -385,6 +387,7 @@
   ((rsbac_request_vector_t) 1 << R_CHANGE_DAC_EFF_OWNER) | \
   ((rsbac_request_vector_t) 1 << R_CHANGE_DAC_FS_OWNER) | \
   ((rsbac_request_vector_t) 1 << R_CLOSE) | \
+  ((rsbac_request_vector_t) 1 << R_TRACE) | \
   ((rsbac_request_vector_t) 1 << R_TRUNCATE) | \
   ((rsbac_request_vector_t) 1 << R_WRITE) | \
   ((rsbac_request_vector_t) 1 << R_WRITE_OPEN) | \
