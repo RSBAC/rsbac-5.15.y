@@ -619,6 +619,12 @@ rsbac_adf_request_check(enum rsbac_adf_request_t request,
 	case R_TRACE:
 		switch (target) {
 		case T_PROCESS:
+		case T_FILE:
+		case T_DIR:
+		case T_FIFO:
+		case T_SYMLINK:
+		case T_UNIXSOCK:
+		case T_DEV:
 			return DO_NOT_CARE;
 			/* all other cases are undefined */
 		default:
