@@ -6,7 +6,7 @@
 /*                                                   */
 /* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 03/Dec/2021                        */
+/* Last modified: 06/Dec/2021                        */
 /*************************************************** */
 
 #include <linux/string.h>
@@ -2253,7 +2253,7 @@ rsbac_adf_request_rc(enum rsbac_adf_request_t request,
 		case T_DIR:
 		case T_FIFO:
 		case T_SYMLINK:
-                case T_UNIXSOCK:
+		case T_UNIXSOCK:
 		case T_IPC:
 #if defined(CONFIG_RSBAC_RC_UM_PROT)
 		case T_USER:
@@ -2268,12 +2268,28 @@ rsbac_adf_request_rc(enum rsbac_adf_request_t request,
 		}
 
 	case R_SEND_SIGNAL:
-	case R_TRACE:
 		if (target == T_PROCESS)
 			return check_comp_rc
 				(target, tid, request, caller_pid);
 		else
 			return DO_NOT_CARE;
+
+	case R_TRACE:
+		switch (target) {
+		case T_PROCESS:
+		case T_FILE:
+		case T_DIR:
+		case T_FIFO:
+		case T_SYMLINK:
+		case T_UNIXSOCK:
+		case T_DEV:
+			return check_comp_rc
+				(target, tid, request, caller_pid);
+
+			/* all other cases are unknown */
+		default:
+			return DO_NOT_CARE;
+		}
 
 	case R_SHUTDOWN:
 		switch (target) {
