@@ -6,7 +6,7 @@
 /*                                                   */
 /* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 03/Dec/2021                        */
+/* Last modified: 06/Dec/2021                        */
 /*************************************************** */
 
 #include <linux/init.h>
@@ -613,10 +613,13 @@ rsbac_adf_request_udf (enum  rsbac_adf_request_t     request,
 					switch (attr) {
 						case A_udf_role:
 						case A_udf_checker:
-						case A_udf_checked:
 						case A_udf_do_check:
 						case A_system_role:
 						case A_none:
+							return udf_check_secoff(owner, attr, FALSE);
+						case A_udf_checked:
+							if (attr_val.udf_checked == UDF_in_progress)
+								return NOT_GRANTED;
 							return udf_check_secoff(owner, attr, FALSE);
 						default:
 							return DO_NOT_CARE;
