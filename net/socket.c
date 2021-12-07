@@ -2260,8 +2260,6 @@ struct file *do_accept(struct file *file, unsigned file_flags,
 						rsbac_target_id.ipc.id.id_nr = 0;
 				}
 			}
-		}
-		if (sock->sk) {
 			rsbac_attribute_value.process = get_pid(sock->sk->sk_peer_pid);
 			if (rsbac_attribute_value.process) {
 				if (pid_nr(rsbac_attribute_value.process) > 0) {
@@ -2287,7 +2285,7 @@ struct file *do_accept(struct file *file, unsigned file_flags,
 		rsbac_target_id.netobj.sock_p = newsock;
 		rsbac_target_id.netobj.local_addr = NULL;
 		rsbac_target_id.netobj.local_len = 0;
-		if(newsock->ops->getname(newsock, (struct sockaddr *)&address, 2) <0) {
+		if(newsock->ops->getname(newsock, (struct sockaddr *)&address, 2) < 0) {
 			rsbac_target_id.netobj.remote_addr = NULL;
 			rsbac_target_id.netobj.remote_len = 0;
 		} else {
@@ -2343,10 +2341,12 @@ struct file *do_accept(struct file *file, unsigned file_flags,
 			goto out_fd;
 	}
 
-	/* File flags are not inherited via accept() unlike another OSes. */
-	return newfile;
 #ifdef CONFIG_RSBAC
 	if (rsbac_target != T_NONE) {
+		if (upeer_sockaddr) {
+			rsbac_target_id.netobj.remote_addr = (struct sockaddr *)&address;
+			rsbac_target_id.netobj.remote_len = len;
+		}
 		rsbac_new_target_id.dummy = 0;
 		if (unlikely(rsbac_adf_set_attr(R_ACCEPT,
 					task_pid(current),
@@ -2363,6 +2363,8 @@ struct file *do_accept(struct file *file, unsigned file_flags,
 		put_pid(rsbac_attribute_value.process);
 #endif
 
+	/* File flags are not inherited via accept() unlike another OSes. */
+	return newfile;
 out_fd:
 	fput(newfile);
 	return ERR_PTR(err);
