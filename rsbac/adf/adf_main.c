@@ -5,7 +5,7 @@
 /*                                                   */
 /* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 03/Nov/2021                        */
+/* Last modified: 06/Dec/2021                        */
 /*************************************************** */
 
 #include <linux/string.h>
@@ -2103,25 +2103,37 @@ general_work:
             switch (target)
               {
                 case T_NETOBJ:
-                  /* store remote IP */
+                  /* store remote IP, if known */
                   if(   tid.netobj.sock_p
                      && tid.netobj.sock_p->ops
-                     && tid.netobj.sock_p->sk
                      && (tid.netobj.sock_p->ops->family == AF_INET)
-                    )
-                    {
-                      i_tid.process = caller_pid;
+                    ) {
+                    i_tid.process = caller_pid;
+                    i_attr_val.remote_ip = 0;
+                    if (tid.netobj.remote_addr) {
+                      i_attr_val.remote_ip = ((struct sockaddr_in *) tid.netobj.remote_addr)->sin_addr.s_addr;
+                    } else if(tid.netobj.sock_p->sk) {
                       i_attr_val.remote_ip = inet_sk(tid.netobj.sock_p->sk)->inet_daddr;
+                    }
+                    if (i_attr_val.remote_ip) {
+                      rsbac_pr_debug(aef_net, "Set remote_ip of pid %u(%s) to %pI4\n",
+                                     pid_nr(caller_pid), current->comm, &i_attr_val.remote_ip);
                       /* set remote_ip for new process */
                       if (rsbac_set_attr(SW_GEN,
                                          T_PROCESS,
                                          i_tid,
                                          A_remote_ip,
-                                         i_attr_val))
-                        {
-                          rsbac_ds_set_error("rsbac_adf_set_attr()", A_remote_ip);
-                        }
+                                         i_attr_val)) {
+                        rsbac_ds_set_error("rsbac_adf_set_attr()", A_remote_ip);
+                      }
+                    } else {
+                      rsbac_pr_debug(aef_net, "Cannot set remote_ip of pid %u(%s), no remote address found\n",
+                                     pid_nr(caller_pid), current->comm);
                     }
+                  } else {
+                    rsbac_pr_debug(aef_net, "Cannot set remote_ip of pid %u(%s), family != AF_INET\n",
+                                   pid_nr(caller_pid), current->comm);
+                  }
                   break;
 
                 default:
