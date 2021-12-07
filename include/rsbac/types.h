@@ -4,7 +4,7 @@
 /*   Amon Ott <ao@rsbac.org>         */
 /* API: Data types for attributes    */
 /*      and standard module calls    */
-/* Last modified: 03/Dec/2021        */
+/* Last modified: 07/Dec/2021        */
 /*********************************** */
 
 #ifndef __RSBAC_TYPES_H
@@ -31,10 +31,10 @@
 #define RSBAC_API_MIN_VERSION_NR \
  ((RSBAC_API_MIN_VERSION_MAJOR << 16) | (RSBAC_API_MIN_VERSION_MID << 8) | RSBAC_API_MIN_VERSION_MINOR)
 
-#define RSBAC_API_MAX_VERSION "1.5.4"
+#define RSBAC_API_MAX_VERSION "1.5.6"
 #define RSBAC_API_MAX_VERSION_MAJOR 1
 #define RSBAC_API_MAX_VERSION_MID 5
-#define RSBAC_API_MAX_VERSION_MINOR 4
+#define RSBAC_API_MAX_VERSION_MINOR 6
 #define RSBAC_API_MAX_VERSION_NR \
  ((RSBAC_API_MAX_VERSION_MAJOR << 16) | (RSBAC_API_MAX_VERSION_MID << 8) | RSBAC_API_MAX_VERSION_MINOR)
 
