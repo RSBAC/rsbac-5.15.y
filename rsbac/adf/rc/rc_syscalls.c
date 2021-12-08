@@ -359,7 +359,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_FILE, tid.type))
                     {
                       rsbac_uid_t user;
                       char tmp[80];
@@ -392,7 +392,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_DEV, tid.type))
                     {
                       rsbac_uid_t user;
 
@@ -423,7 +423,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_IPC, tid.type))
                     {
                       rsbac_uid_t user;
 
@@ -454,7 +454,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_USER, tid.type))
                     {
                       rsbac_uid_t user;
 
@@ -485,7 +485,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_PROCESS, tid.type))
                     {
                       rsbac_uid_t user;
 
@@ -546,7 +546,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_GROUP, tid.type))
                     {
                       rsbac_uid_t user;
 
@@ -577,7 +577,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_NETDEV, tid.type))
                     {
                       rsbac_uid_t user;
 
@@ -608,7 +608,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_NETTEMP, tid.type))
                     {
                       rsbac_uid_t user;
 
@@ -639,7 +639,7 @@ int rsbac_rc_sys_set_item(
                  && (err=rsbac_rc_test_role_admin(TRUE))
                 )
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_type_exists(ta_number, T_NETOBJ, tid.type))
                     {
                       rsbac_uid_t user;
 
@@ -806,7 +806,7 @@ int rsbac_rc_sys_set_item(
               /* test admin_role of process role / modify */
               if((err=rsbac_rc_test_role_admin(TRUE)))
                 {
-                  if(err == -EPERM)
+                  if(err == -EPERM && rsbac_rc_role_exists(ta_number, tid.role))
                     {
                       rsbac_uid_t user;
 
