@@ -4,9 +4,9 @@
 /* Facility (ADF) - Role Compatibility               */
 /* File: rsbac/adf/rc/main.c                         */
 /*                                                   */
-/* Author and (c) 1999-2021: Amon Ott <ao@rsbac.org> */
+/* Author and (c) 1999-2022: Amon Ott <ao@rsbac.org> */
 /*                                                   */
-/* Last modified: 06/Dec/2021                        */
+/* Last modified: 25/Mar/2022                        */
 /*************************************************** */
 
 #include <linux/string.h>
@@ -651,7 +651,7 @@ int rsbac_rc_test_admin_roles(rsbac_rc_role_id_t t_role,
 }
 
 /* exported for rc_syscalls.c */
-int rsbac_rc_test_assign_roles(enum rsbac_target_t target,
+static int rsbac_rc_test_assign_roles(enum rsbac_target_t target,
 			       union rsbac_target_id_t tid,
 			       enum rsbac_attribute_t attr,
 			       rsbac_rc_role_id_t t_role)
@@ -678,9 +678,40 @@ int rsbac_rc_test_assign_roles(enum rsbac_target_t target,
 		rsbac_pr_get_error_num(attr, err);
 		return -RSBAC_EREADFAILED;
 	}
-
+	if (target == T_FILE || target == T_DIR) {
+		/* initial role can refer to force role */
+		if (   attr == A_rc_initial_role
+		    && i_attr_val2.rc_role == RC_role_use_force_role) {
+			if ((err = rsbac_get_attr(SW_RC,
+						  target,
+						  tid, A_rc_force_role, &i_attr_val2, TRUE))) {
+				rsbac_pr_get_error_num(A_rc_force_role, err);
+				return -RSBAC_EREADFAILED;
+			}
+		}
+		/* if force role is inherited as RC_default_root_dir_force_role,
+		 * leave RC_role_inherit_parent as marker
+		 */
+		if (   (attr == A_rc_initial_role || attr == A_rc_force_role)
+		    && i_attr_val2.rc_role == RC_default_root_dir_force_role) {
+			/* get force role without inheritance */
+			/* this will return RC_role_inherit_parent, if value had been inherited */
+			if ((err = rsbac_get_attr(SW_RC,
+						  target,
+						  tid, A_rc_force_role, &i_attr_val2, FALSE))) {
+				rsbac_pr_get_error_num(A_rc_force_role, err);
+				return -RSBAC_EREADFAILED;
+			}
+			/* if force role has been set explicitely, restore value */
+			if (i_attr_val2.rc_role != RC_role_inherit_parent)
+				i_attr_val2.rc_role = RC_default_root_dir_force_role;
+		}
+	}
 	i_rc_subtid.role = i_attr_val2.rc_role;
-	if (!rsbac_rc_check_comp(i_attr_val1.rc_role,
+	/* check for marker, see above */
+	/* we allow without assign role entry in this special case */
+	if (   i_rc_subtid.role != RC_role_inherit_parent
+	    && !rsbac_rc_check_comp(i_attr_val1.rc_role,
 				 i_rc_subtid, RI_assign_roles, R_NONE)) {
                 if (i_attr_val2.rc_role <= RC_role_max_value)
                         rsbac_pr_debug(adf_rc,
@@ -691,8 +722,40 @@ int rsbac_rc_test_assign_roles(enum rsbac_target_t target,
                                __kuid_val(current_uid()));
 		return -EPERM;
 	}
+	if (target == T_FILE || target == T_DIR) {
+		/* initial role can refer to force role */
+		if (   attr == A_rc_initial_role
+		    && t_role == RC_role_use_force_role) {
+			if ((err = rsbac_get_attr(SW_RC,
+						  target,
+						  tid, A_rc_force_role, &i_attr_val2, TRUE))) {
+				rsbac_pr_get_error_num(A_rc_force_role, err);
+				return -RSBAC_EREADFAILED;
+			}
+			/* if force role is inherited as RC_default_root_dir_force_role,
+			 * leave RC_role_inherit_parent as marker
+			 */
+			if (i_attr_val2.rc_role == RC_default_root_dir_force_role) {
+				/* get force role without inheritance */
+				/* this will return RC_role_inherit_parent, if value had been inherited */
+				if ((err = rsbac_get_attr(SW_RC,
+							  target,
+							  tid, A_rc_force_role, &i_attr_val2, FALSE))) {
+					rsbac_pr_get_error_num(A_rc_force_role, err);
+					return -RSBAC_EREADFAILED;
+				}
+				/* if force role has been set explicitely, restore value */
+				if (i_attr_val2.rc_role != RC_role_inherit_parent)
+					i_attr_val2.rc_role = RC_default_root_dir_force_role;
+			}
+			t_role = i_attr_val2.rc_role;
+		}
+	}
 	i_rc_subtid.role = t_role;
-	if (!rsbac_rc_check_comp(i_attr_val1.rc_role,
+	/* check for marker, see above */
+	/* we allow without assign role entry in this special case */
+	if (   i_rc_subtid.role != RC_role_inherit_parent
+	    && !rsbac_rc_check_comp(i_attr_val1.rc_role,
 				 i_rc_subtid,
 				 RI_assign_roles, R_NONE)) {
                 if (t_role <= RC_role_max_value)
