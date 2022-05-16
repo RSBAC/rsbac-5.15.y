@@ -60,7 +60,7 @@ static int sysfs_kf_seq_show(struct seq_file *sf, void *v)
 				task_pid(current),
 				T_SCD,
 				rsbac_target_id,
-				A_owner,
+				A_none,
 				rsbac_attribute_value)) {
 		return -EPERM;
 	}
@@ -131,7 +131,7 @@ static ssize_t sysfs_kf_bin_read(struct kernfs_open_file *of, char *buf,
 				task_pid(current),
 				T_SCD,
 				rsbac_target_id,
-				A_owner,
+				A_none,
 				rsbac_attribute_value)) {
 		return -EPERM;
 	}
