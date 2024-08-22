@@ -516,7 +516,7 @@ retry:
 
 #ifdef CONFIG_RSBAC
 #if defined(CONFIG_RSBAC_CAP_FD_HIDE)
-	if (rsbac_cap_hide_fd(path.dentry)) {
+	if (rsbac_cap_hide_fd(path.dentry->d_inode)) {
 		res = -ENOENT;
 		goto out_path_release;
 	}
@@ -621,7 +621,7 @@ retry:
 		goto out;
 
 #if defined(CONFIG_RSBAC_CAP_FD_HIDE)
-	if (rsbac_cap_hide_fd(path.dentry)) {
+	if (rsbac_cap_hide_fd(path.dentry->d_inode)) {
 		error = -ENOENT;
 		goto dput_and_out;
 	}
@@ -723,7 +723,7 @@ retry:
 		goto out;
 
 #if defined(CONFIG_RSBAC_CAP_FD_HIDE)
-	if (rsbac_cap_hide_fd(path.dentry)) {
+	if (rsbac_cap_hide_fd(path.dentry->d_inode)) {
 		error = -ENOENT;
 		goto dput_and_out;
 	}
@@ -783,7 +783,7 @@ int chmod_common(const struct path *path, umode_t mode)
 #endif
 
 #if defined(CONFIG_RSBAC_CAP_FD_HIDE)
-	if (rsbac_cap_hide_fd(path->dentry)) {
+	if (rsbac_cap_hide_fd(inode)) {
 		return -ENOENT;
 	}
 #endif
@@ -998,7 +998,7 @@ retry:
 		goto out;
 
 #if defined(CONFIG_RSBAC_CAP_FD_HIDE)
-	if (rsbac_cap_hide_fd(path.dentry)) {
+	if (rsbac_cap_hide_fd(path.dentry->d_inode)) {
 		error = -ENOENT;
 		goto out_release;
 	}
