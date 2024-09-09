@@ -5,7 +5,7 @@
 /* (some smaller parts copied from fs/namei.c        */
 /*  and others)                                      */
 /*                                                   */
-/* Last modified: 29/Jul/2024                        */
+/* Last modified: 09/Sep/2024                        */
 /*************************************************** */
 
 #include <linux/types.h>
@@ -6835,8 +6835,8 @@ static int rsbacd(void *dummy)
 			rsbac_check_lists(1);
 		}
 #endif
-		/* Write lists */
-		if (rsbac_initialized && !rsbac_debug_no_write) {
+		/* Trigger rehashing and writing of lists */
+		if (rsbac_initialized) {
 			int err = 0;
 			/* rsbac_pr_debug(auto, "calling rsbac_write()\n"); */
 			err = rsbac_write(FALSE);
