@@ -742,7 +742,13 @@ int tty_mode_ioctl(struct tty_struct *tty, struct file *file,
 		case TIOCGLTC:
 #endif
 		case TCGETS:
+#ifdef TCGETS2
+		case TCGETS2:
+#endif
 		case TCGETA:
+#ifdef TCGETX
+		case TCGETX:
+#endif
 		case TIOCOUTQ:
 		case TIOCINQ:
 		case TIOCGLCKTRMIOS:
@@ -755,12 +761,12 @@ int tty_mode_ioctl(struct tty_struct *tty, struct file *file,
 	rsbac_target_id.dev.type = D_char;
 	rsbac_target_id.dev.major = tty->driver->major;
 	rsbac_target_id.dev.minor = tty->driver->minor_start + tty->index;
-	rsbac_attribute_value.dummy = 0;
+	rsbac_attribute_value.ioctl_cmd = cmd;
 	if (!rsbac_adf_request(rsbac_request,
 				task_pid(current),
 				T_DEV,
 				rsbac_target_id,
-				A_none,
+				A_ioctl_cmd,
 				rsbac_attribute_value))
 	{
 		return -EPERM;
