@@ -511,8 +511,7 @@ static int proc_pid_wchan(struct seq_file *m, struct pid_namespace *ns,
 					A_none,
 					rsbac_attribute_value)) {
 			put_pid(rsbac_target_id.process);
-			seq_putc(m, '0');
-			return 0;
+			goto print0;
 		}
 		put_pid(rsbac_target_id.process);
 	}
@@ -2152,7 +2151,6 @@ static int proc_exe_link(struct dentry *dentry, struct path *exe_path,
 	union rsbac_attribute_value_t rsbac_attribute_value;
 #endif
 
-
 #ifdef CONFIG_RSBAC
 	rsbac_pr_debug(aef, "calling ADF\n");
 	rsbac_target_id.process = get_task_pid(task, PIDTYPE_PID);
@@ -2165,7 +2163,6 @@ static int proc_exe_link(struct dentry *dentry, struct path *exe_path,
 					A_none,
 					rsbac_attribute_value)) {
 			put_pid(rsbac_target_id.process);
-			put_task_struct(task);
 			return -EPERM;
 		}
 		put_pid(rsbac_target_id.process);
