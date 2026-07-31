@@ -497,14 +497,14 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 	unsigned int seq = 1;
 	int ret;
 
-	ret = down_read_killable(&task->signal->exec_update_lock);
-	if (ret)
-		return ret;
-
 #ifdef CONFIG_RSBAC
 	union rsbac_target_id_t rsbac_target_id;
 	union rsbac_attribute_value_t rsbac_attribute_value;
 #endif
+
+	ret = down_read_killable(&task->signal->exec_update_lock);
+	if (ret)
+		return ret;
 
 #ifdef CONFIG_RSBAC
 	rsbac_pr_debug(aef, "calling ADF\n");
